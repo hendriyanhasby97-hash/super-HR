@@ -24,7 +24,10 @@ export function renderPegawai(container) {
             
             .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;}
             .form-group label { display: block; font-weight: 600; font-size: 0.85rem; color: #475569; margin-bottom: 4px;}
-            .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; }
+            .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none;}
+            .form-group input:focus, .form-group select:focus { border-color: #3b82f6; }
+            .form-group input[readonly] { background: #f1f5f9; cursor: not-allowed; }
+            
             fieldset { border: 1px solid #e2e8f0; padding: 15px; border-radius: 6px; margin-bottom: 15px; background: #fafafa;}
             legend { font-weight: bold; background: #3b82f6; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.9rem;}
 
@@ -64,15 +67,43 @@ export function renderPegawai(container) {
                             <div class="form-group"><label>Nama</label><input type="text" name="nama" id="form_nama" required></div>
                             <div class="form-group"><label>Tempat Lahir</label><input type="text" name="tempat_lahir" id="form_tempat_lahir"></div>
                             <div class="form-group"><label>Tanggal Lahir</label><input type="date" name="tanggal_lahir" id="form_tanggal_lahir"></div>
+                            
                             <div class="form-group"><label>Jenis Kelamin</label>
                                 <select name="jenis_kelamin" id="form_jenis_kelamin">
-                                    <option value="Laki-laki">Laki-laki</option><option value="Perempuan">Perempuan</option>
+                                    <option value="" hidden>Pilih...</option>
+                                    <option value="Laki-laki">Laki-laki</option>
+                                    <option value="Perempuan">Perempuan</option>
                                 </select>
                             </div>
-                            <div class="form-group"><label>Agama</label><input type="text" name="agama" id="form_agama"></div>
-                            <div class="form-group"><label>Status Keluarga</label><input type="text" name="status_keluarga" id="form_status_keluarga"></div>
+                            
+                            <div class="form-group"><label>Agama</label>
+                                <select name="agama" id="form_agama">
+                                    <option value="" hidden>Pilih...</option>
+                                    <option value="Islam">Islam</option>
+                                    <option value="Kristen">Kristen</option>
+                                    <option value="Budha">Budha</option>
+                                    <option value="Hindu">Hindu</option>
+                                    <option value="Konghucu">Konghucu</option>
+                                    <option value="Kepercayaan Lainnya">Kepercayaan Lainnya</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group"><label>Status Keluarga</label>
+                                <select name="status_keluarga" id="form_status_keluarga">
+                                    <option value="" hidden>Pilih...</option>
+                                    <option value="Lajang">Lajang</option>
+                                    <option value="Menikah">Menikah</option>
+                                    <option value="Janda">Janda</option>
+                                    <option value="Duda">Duda</option>
+                                </select>
+                            </div>
+                            
                             <div class="form-group"><label>No Telp</label><input type="text" name="no_telp" id="form_no_telp"></div>
-                            <div class="form-group"><label>Email</label><input type="email" name="email" id="form_email"></div>
+                            
+                            <div class="form-group"><label>Email (Wajib Valid)</label>
+                                <input type="email" name="email" id="form_email" placeholder="contoh@email.com">
+                            </div>
+                            
                             <div class="form-group"><label>Password (Sistem)</label><input type="text" name="password" id="form_password"></div>
                             <div class="form-group" style="grid-column: span 2;"><label>Alamat</label><input type="text" name="alamat" id="form_alamat"></div>
                         </div>
@@ -80,18 +111,53 @@ export function renderPegawai(container) {
 
                     <fieldset><legend>Data Kepegawaian & RS</legend>
                         <div class="grid-2">
-                            <div class="form-group"><label>NIP</label><input type="text" name="nip" id="form_nip"></div>
-                            <div class="form-group"><label>Status Pegawai</label><input type="text" name="status" id="form_status"></div>
-                            <div class="form-group"><label>Kelompok Pegawai</label><input type="text" name="kelompok_pegawai" id="form_kelompok_pegawai"></div>
-                            <div class="form-group"><label>Kelompok Jabatan</label><input type="text" name="kelompok_jabatan" id="form_kelompok_jabatan"></div>
+                            <div class="form-group"><label>NIP (Auto Hitung TMT CPNS)</label><input type="text" name="nip" id="form_nip"></div>
+                            
+                            <div class="form-group"><label>Status Pegawai</label>
+                                <select name="status" id="form_status">
+                                    <option value="" hidden>Pilih...</option>
+                                    <option value="Aktif">Aktif</option>
+                                    <option value="Mutasi">Mutasi</option>
+                                    <option value="Pensiun">Pensiun</option>
+                                    <option value="Resign">Resign</option>
+                                    <option value="Meninggal">Meninggal</option>
+                                    <option value="Lainnya">Lainnya</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group"><label>Kelompok Pegawai</label>
+                                <select name="kelompok_pegawai" id="form_kelompok_pegawai">
+                                    <option value="" hidden>Pilih...</option>
+                                    <option value="ASN">ASN</option>
+                                    <option value="APBD">APBD</option>
+                                    <option value="BLUD">BLUD</option>
+                                    <option value="Konsultan">Konsultan</option>
+                                    <option value="Magang">Magang</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group"><label>Kelompok Jabatan</label>
+                                <select name="kelompok_jabatan" id="form_kelompok_jabatan">
+                                    <option value="" hidden>Pilih...</option>
+                                    <option value="Management">Management</option>
+                                    <option value="Tenaga Medis">Tenaga Medis</option>
+                                    <option value="Tenaga Kesehatan">Tenaga Kesehatan</option>
+                                    <option value="Tenaga Penunjang Medis">Tenaga Penunjang Medis</option>
+                                    <option value="Tenaga Administrasi">Tenaga Administrasi</option>
+                                    <option value="Tenaga Non Administrasi">Tenaga Non Administrasi</option>
+                                </select>
+                            </div>
+                            
                             <div class="form-group"><label>Golongan</label><input type="text" name="gol" id="form_gol"></div>
                             <div class="form-group"><label>Jabatan</label><input type="text" name="jabatan" id="form_jabatan"></div>
                             <div class="form-group"><label>Ruangan</label><input type="text" name="ruangan" id="form_ruangan"></div>
-                            <div class="form-group"><label>TMT Pangkat</label><input type="date" name="tmt_pangkat" id="form_tmt_pangkat"></div>
-                            <div class="form-group"><label>TMT Berikutnya</label><input type="date" name="tmt_berikutnya" id="form_tmt_berikutnya"></div>
-                            <div class="form-group"><label>TMT CPNS</label><input type="date" name="tmt_cpns" id="form_tmt_cpns"></div>
-                            <div class="form-group"><label>Masuk RS</label><input type="date" name="masuk_rs" id="form_masuk_rs"></div>
-                            <div class="form-group"><label>Masa Kerja RS</label><input type="text" name="masa_kerja_rs" id="form_masa_kerja_rs"></div>
+                            
+                            <div class="form-group"><label>TMT Pangkat (Khusus ASN)</label><input type="date" name="tmt_pangkat" id="form_tmt_pangkat"></div>
+                            <div class="form-group"><label>TMT Berikutnya (Khusus ASN)</label><input type="date" name="tmt_berikutnya" id="form_tmt_berikutnya"></div>
+                            <div class="form-group"><label>TMT CPNS (Khusus ASN)</label><input type="date" name="tmt_cpns" id="form_tmt_cpns"></div>
+                            
+                            <div class="form-group"><label>Tanggal Masuk RS</label><input type="date" name="masuk_rs" id="form_masuk_rs"></div>
+                            <div class="form-group"><label>Masa Kerja RS (Auto)</label><input type="text" name="masa_kerja_rs" id="form_masa_kerja_rs" readonly placeholder="Otomatis dihitung..."></div>
                             <div class="form-group"><label>Rentang BUP</label><input type="text" name="rentang_bup" id="form_rentang_bup"></div>
                             <div class="form-group"><label>TMT Pensiun</label><input type="date" name="tmt_pensiun" id="form_tmt_pensiun"></div>
                         </div>
@@ -99,7 +165,23 @@ export function renderPegawai(container) {
 
                     <fieldset><legend>Pendidikan & Identitas Negara</legend>
                         <div class="grid-2">
-                            <div class="form-group"><label>Jenjang</label><input type="text" name="jenjang" id="form_jenjang"></div>
+                            <div class="form-group"><label>Jenjang Pendidikan</label>
+                                <select name="jenjang" id="form_jenjang">
+                                    <option value="" hidden>Pilih...</option>
+                                    <option value="SD">SD</option>
+                                    <option value="SMP">SMP</option>
+                                    <option value="SMA">SMA</option>
+                                    <option value="D1">D1</option>
+                                    <option value="D3">D3</option>
+                                    <option value="D4">D4</option>
+                                    <option value="S1">S1</option>
+                                    <option value="Profesi">Profesi</option>
+                                    <option value="Spesialis">Spesialis</option>
+                                    <option value="Magister">Magister</option>
+                                    <option value="Konsultan">Konsultan</option>
+                                </select>
+                            </div>
+                            
                             <div class="form-group"><label>Fakultas</label><input type="text" name="fakultas" id="form_fakultas"></div>
                             <div class="form-group"><label>Jurusan</label><input type="text" name="jurusan" id="form_jurusan"></div>
                             <div class="form-group"><label>No BPJS Kesehatan</label><input type="text" name="no_bpjsn" id="form_no_bpjsn"></div>
@@ -122,9 +204,7 @@ export function renderPegawai(container) {
                     <h3 style="margin:0;"><i class="fas fa-id-card" style="color:#0ea5e9;"></i> Detail Informasi Pegawai</h3>
                     <button class="btn" style="background:#ef4444; padding: 5px 10px;" id="btnTutupDetail"><i class="fas fa-times"></i></button>
                 </div>
-                
-                <div id="kontenDetail" class="grid-2" style="grid-template-columns: 1fr 1fr 1fr;">
-                    </div>
+                <div id="kontenDetail" class="grid-2" style="grid-template-columns: 1fr 1fr 1fr;"></div>
             </div>
         </div>
     `;
@@ -145,7 +225,86 @@ function initLogikaPegawai() {
 
     let currentData = [];
 
-    // --- 1. LOAD DATA DARI DATABASE ---
+    // --- 1. LOGIKA AUTO HITUNG & VALIDASI FORM ---
+    const inpKelompokPegawai = document.getElementById('form_kelompok_pegawai');
+    const inptmtPangkat = document.getElementById('form_tmt_pangkat');
+    const inptmtCpns = document.getElementById('form_tmt_cpns');
+    const inptmtBerikutnya = document.getElementById('form_tmt_berikutnya');
+    const inpNIP = document.getElementById('form_nip');
+    const inpMasukRS = document.getElementById('form_masuk_rs');
+    const inpMasaKerjaRS = document.getElementById('form_masa_kerja_rs');
+
+    // Kunci TMT jika bukan ASN
+    function cekStatusASN() {
+        if (inpKelompokPegawai.value === 'ASN') {
+            inptmtPangkat.readOnly = false;
+            inptmtCpns.readOnly = false;
+            inptmtBerikutnya.readOnly = false;
+        } else {
+            inptmtPangkat.readOnly = true;
+            inptmtCpns.readOnly = true;
+            inptmtBerikutnya.readOnly = true;
+            inptmtPangkat.value = '';
+            inptmtCpns.value = '';
+            inptmtBerikutnya.value = '';
+        }
+    }
+    inpKelompokPegawai.addEventListener('change', cekStatusASN);
+
+    // Auto Hitung TMT CPNS dari NIP
+    inpNIP.addEventListener('input', () => {
+        let nip = inpNIP.value.replace(/[^0-9]/g, ''); // Buang karakter selain angka
+        
+        // Logika sesuai permintaan:
+        // 4 angka dari digit ke-6 (indeks 5-8) adalah Tahun
+        // 2 angka berikutnya (indeks 9-10) adalah Bulan
+        // 2 angka berikutnya (indeks 11-12) adalah Hari
+        if (nip.length >= 13) {
+            const year = nip.substring(5, 9);
+            const month = nip.substring(9, 11);
+            const day = nip.substring(11, 13);
+            
+            // Validasi string agar menjadi format Date yang benar YYYY-MM-DD
+            if (year > 1900 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+                inptmtCpns.value = `${year}-${month}-${day}`;
+            }
+        }
+    });
+
+    // Auto Hitung Masa Kerja RS
+    function hitungMasaKerja() {
+        if (!inpMasukRS.value) {
+            inpMasaKerjaRS.value = '';
+            return;
+        }
+        
+        const start = new Date(inpMasukRS.value);
+        const end = new Date(); // Hari ini
+        if (start > end) {
+            inpMasaKerjaRS.value = '0 Tahun 0 Bulan 0 Hari';
+            return;
+        }
+
+        let years = end.getFullYear() - start.getFullYear();
+        let months = end.getMonth() - start.getMonth();
+        let days = end.getDate() - start.getDate();
+
+        if (days < 0) {
+            months--;
+            const prevMonth = new Date(end.getFullYear(), end.getMonth(), 0);
+            days += prevMonth.getDate();
+        }
+        if (months < 0) {
+            years--;
+            months += 12;
+        }
+
+        inpMasaKerjaRS.value = `${years} Tahun ${months} Bulan ${days} Hari`;
+    }
+    inpMasukRS.addEventListener('input', hitungMasaKerja);
+
+
+    // --- 2. LOAD DATA DARI DATABASE ---
     async function loadData() {
         const { data, error } = await supabase.from('pegawai').select('*');
         if (error) {
@@ -157,7 +316,7 @@ function initLogikaPegawai() {
         renderTabel(currentData); 
     }
 
-    // --- 2. RENDER TABEL HTML ---
+    // --- 3. RENDER TABEL HTML ---
     function renderTabel(data) {
         if (data.length === 0) {
             tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Tidak ada data yang ditemukan.</td></tr>`;
@@ -180,7 +339,7 @@ function initLogikaPegawai() {
         `).join('');
     }
 
-    // --- 3. FITUR PENCARIAN & FILTER ---
+    // --- 4. FITUR PENCARIAN & FILTER ---
     function terapkanPencarianDanFilter() {
         const keyword = inputCari.value.toLowerCase();
         const statusTerpilih = filterStatus.value;
@@ -194,23 +353,24 @@ function initLogikaPegawai() {
     }
 
     function updateOpsiFilter() {
-        const listStatus = [...new Set(currentData.map(p => p.status).filter(Boolean))];
+        // Ambil opsi statis default ditambah opsi dinamis dari database (jika ada yg lain)
+        const baseOptions = ["Aktif", "Mutasi", "Pensiun", "Resign", "Meninggal", "Lainnya"];
+        const dbStatus = [...new Set(currentData.map(p => p.status).filter(Boolean))];
+        const allStatus = [...new Set([...baseOptions, ...dbStatus])];
+
         filterStatus.innerHTML = `<option value="">Semua Status Pegawai</option>` + 
-            listStatus.map(status => `<option value="${status}">${status}</option>`).join('');
+            allStatus.map(status => `<option value="${status}">${status}</option>`).join('');
     }
 
     inputCari.addEventListener('input', terapkanPencarianDanFilter);
     filterStatus.addEventListener('change', terapkanPencarianDanFilter);
 
-    // --- 4. FITUR VIEW DETAIL (BARU) ---
+    // --- 5. FITUR VIEW DETAIL ---
     window.bukaDetail = (id) => {
         const pegawai = currentData.find(p => p.id_pegawai == id);
         if(!pegawai) return;
 
-        // Kosongkan konten sebelumnya
         kontenDetail.innerHTML = '';
-
-        // Definisi kolom apa saja yang mau ditampilkan (Bisa disesuaikan urutannya)
         const kolomTampil = [
             { key: 'nik', label: 'NIK' }, { key: 'nip', label: 'NIP' }, { key: 'nama', label: 'Nama Lengkap' },
             { key: 'tempat_lahir', label: 'Tempat Lahir' }, { key: 'tanggal_lahir', label: 'Tgl Lahir' },
@@ -229,37 +389,27 @@ function initLogikaPegawai() {
             { key: 'npwp', label: 'NPWP' }
         ];
 
-        // Looping untuk membuat elemen UI
         kolomTampil.forEach(item => {
             const div = document.createElement('div');
             div.className = 'detail-item';
-            
-            // Format ulang teks jika null/kosong
             let nilai = pegawai[item.key];
             if(nilai === null || nilai === "") nilai = "-";
 
-            div.innerHTML = `
-                <span class="detail-label">${item.label}</span>
-                <span class="detail-value">${nilai}</span>
-            `;
-            
-            // Jika alamat, buat agar memakan 3 kolom (full width)
+            div.innerHTML = `<span class="detail-label">${item.label}</span><span class="detail-value">${nilai}</span>`;
             if(item.key === 'alamat') div.style.gridColumn = 'span 3';
-            
             kontenDetail.appendChild(div);
         });
 
         modalDetail.style.display = 'flex';
     };
 
-    // Tombol tutup Detail
     document.getElementById('btnTutupDetail').onclick = () => modalDetail.style.display = 'none';
 
-
-    // --- 5. FITUR TAMBAH / EDIT ---
+    // --- 6. FITUR TAMBAH / EDIT ---
     document.getElementById('btnTambahBaru').onclick = () => {
         form.reset(); 
         document.getElementById('form_id_pegawai').value = ''; 
+        cekStatusASN(); // Eksekusi cek di awal agar kolom ASN terkunci
         modalTitle.innerText = "Tambah Master Pegawai Baru";
         modalForm.style.display = 'flex';
     };
@@ -274,13 +424,23 @@ function initLogikaPegawai() {
             const inputElement = document.getElementById(`form_${key}`);
             if(inputElement) inputElement.value = pegawai[key] || '';
         });
+        
+        cekStatusASN(); // Evaluasi ulang status penguncian form berdasarkan data yg di-load
         modalForm.style.display = 'flex';
     };
 
-
-    // --- 6. LOGIKA SIMPAN & HAPUS KE DATABASE ---
+    // --- 7. LOGIKA SIMPAN & HAPUS KE DATABASE ---
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+        
+        // Verifikasi format email secara spesifik menggunakan Regex di JS
+        const emailInput = document.getElementById('form_email').value;
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (emailInput && !emailPattern.test(emailInput)) {
+            alert("Format email tidak valid. Pastikan penulisan benar (contoh: budi@gmail.com)");
+            return; // Batalkan proses simpan
+        }
+
         const btnSimpan = document.getElementById('btnSimpanData');
         btnSimpan.innerText = "Menyimpan...";
 
