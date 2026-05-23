@@ -4,30 +4,34 @@ export function renderPegawai(container) {
     container.innerHTML = `
         <style>
             .btn { padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; color: white; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
-            .btn-edit { background: #f59e0b; margin-right: 5px; padding: 6px 10px; font-size: 0.85rem;}
+            .btn-edit { background: #f59e0b; padding: 6px 10px; font-size: 0.85rem;}
             .btn-hapus { background: #ef4444; padding: 6px 10px; font-size: 0.85rem;}
+            .btn-detail { background: #0ea5e9; padding: 6px 10px; font-size: 0.85rem; margin-right: 5px;}
             .btn-tambah { background: #10b981; }
             
             table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; font-size: 0.9rem;}
             th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
             th { background: #f8fafc; }
             
-            /* Kontrol Header (Pencarian & Filter) */
             .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
             .filter-group { display: flex; gap: 10px; flex: 1; }
             .filter-group input, .filter-group select { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none; }
             .filter-group input { width: 250px; }
-            .filter-group input:focus, .filter-group select:focus { border-color: #3b82f6; }
-
+            
             /* Modal Styles */
             .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 100;}
-            .modal-content { background: white; padding: 20px; border-radius: 8px; width: 800px; max-height: 90vh; overflow-y: auto; }
+            .modal-content { background: white; padding: 25px; border-radius: 8px; width: 800px; max-height: 90vh; overflow-y: auto; }
             
             .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;}
             .form-group label { display: block; font-weight: 600; font-size: 0.85rem; color: #475569; margin-bottom: 4px;}
             .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; }
             fieldset { border: 1px solid #e2e8f0; padding: 15px; border-radius: 6px; margin-bottom: 15px; background: #fafafa;}
             legend { font-weight: bold; background: #3b82f6; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.9rem;}
+
+            /* Style Khusus Modal Detail */
+            .detail-item { border-bottom: 1px dashed #e2e8f0; padding: 8px 0; display: flex; flex-direction: column;}
+            .detail-label { font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase;}
+            .detail-value { font-size: 0.95rem; color: #1e293b; font-weight: 500; margin-top: 3px;}
         </style>
 
         <div class="toolbar">
@@ -35,7 +39,7 @@ export function renderPegawai(container) {
                 <input type="text" id="inputCari" placeholder="🔍 Cari NIK atau Nama...">
                 <select id="filterStatus">
                     <option value="">Semua Status Pegawai</option>
-                    </select>
+                </select>
             </div>
             <button class="btn btn-tambah" id="btnTambahBaru"><i class="fas fa-plus"></i> Tambah Pegawai</button>
         </div>
@@ -54,8 +58,7 @@ export function renderPegawai(container) {
                 <form id="formPegawai">
                     <input type="hidden" name="id_pegawai" id="form_id_pegawai">
                     
-                    <fieldset>
-                        <legend>Data Pribadi & Kontak</legend>
+                    <fieldset><legend>Data Pribadi & Kontak</legend>
                         <div class="grid-2">
                             <div class="form-group"><label>NIK</label><input type="text" name="nik" id="form_nik" required></div>
                             <div class="form-group"><label>Nama</label><input type="text" name="nama" id="form_nama" required></div>
@@ -75,8 +78,7 @@ export function renderPegawai(container) {
                         </div>
                     </fieldset>
 
-                    <fieldset>
-                        <legend>Data Kepegawaian & RS</legend>
+                    <fieldset><legend>Data Kepegawaian & RS</legend>
                         <div class="grid-2">
                             <div class="form-group"><label>NIP</label><input type="text" name="nip" id="form_nip"></div>
                             <div class="form-group"><label>Status Pegawai</label><input type="text" name="status" id="form_status"></div>
@@ -95,8 +97,7 @@ export function renderPegawai(container) {
                         </div>
                     </fieldset>
 
-                    <fieldset>
-                        <legend>Pendidikan & Identitas Negara</legend>
+                    <fieldset><legend>Pendidikan & Identitas Negara</legend>
                         <div class="grid-2">
                             <div class="form-group"><label>Jenjang</label><input type="text" name="jenjang" id="form_jenjang"></div>
                             <div class="form-group"><label>Fakultas</label><input type="text" name="fakultas" id="form_fakultas"></div>
@@ -114,6 +115,18 @@ export function renderPegawai(container) {
                 </form>
             </div>
         </div>
+
+        <div class="modal" id="modalDetailPegawai">
+            <div class="modal-content">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #ccc; padding-bottom:10px; margin-bottom: 20px;">
+                    <h3 style="margin:0;"><i class="fas fa-id-card" style="color:#0ea5e9;"></i> Detail Informasi Pegawai</h3>
+                    <button class="btn" style="background:#ef4444; padding: 5px 10px;" id="btnTutupDetail"><i class="fas fa-times"></i></button>
+                </div>
+                
+                <div id="kontenDetail" class="grid-2" style="grid-template-columns: 1fr 1fr 1fr;">
+                    </div>
+            </div>
+        </div>
     `;
 
     initLogikaPegawai();
@@ -121,15 +134,15 @@ export function renderPegawai(container) {
 
 function initLogikaPegawai() {
     const tbody = document.getElementById('tabelMaster');
-    const modal = document.getElementById('modalFormPegawai');
+    const modalForm = document.getElementById('modalFormPegawai');
+    const modalDetail = document.getElementById('modalDetailPegawai');
     const form = document.getElementById('formPegawai');
     const modalTitle = document.getElementById('modalTitle');
+    const kontenDetail = document.getElementById('kontenDetail');
     
-    // Elemen Pencarian & Filter
     const inputCari = document.getElementById('inputCari');
     const filterStatus = document.getElementById('filterStatus');
 
-    // Variabel Global untuk menyimpan data tanpa harus fetch ke database berulang kali
     let currentData = [];
 
     // --- 1. LOAD DATA DARI DATABASE ---
@@ -139,10 +152,9 @@ function initLogikaPegawai() {
             tbody.innerHTML = `<tr><td colspan="6">Error: ${error.message}</td></tr>`;
             return;
         }
-        
         currentData = data; 
-        updateOpsiFilter(); // Update dropdown filter status
-        renderTabel(currentData); // Tampilkan semua data di awal
+        updateOpsiFilter(); 
+        renderTabel(currentData); 
     }
 
     // --- 2. RENDER TABEL HTML ---
@@ -160,8 +172,9 @@ function initLogikaPegawai() {
                 <td>${row.ruangan || '-'}</td>
                 <td>${row.status || '-'}</td>
                 <td>
-                    <button class="btn btn-edit" onclick="bukaForm('${row.id_pegawai}')"><i class="fas fa-edit"></i></button>
-                    <button class="btn btn-hapus" onclick="hapusDataPegawai('${row.id_pegawai}')"><i class="fas fa-trash"></i></button>
+                    <button class="btn btn-detail" onclick="bukaDetail('${row.id_pegawai}')" title="Lihat Detail"><i class="fas fa-eye"></i></button>
+                    <button class="btn btn-edit" onclick="bukaForm('${row.id_pegawai}')" title="Edit"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-hapus" onclick="hapusDataPegawai('${row.id_pegawai}')" title="Hapus"><i class="fas fa-trash"></i></button>
                 </td>
             </tr>
         `).join('');
@@ -171,103 +184,137 @@ function initLogikaPegawai() {
     function terapkanPencarianDanFilter() {
         const keyword = inputCari.value.toLowerCase();
         const statusTerpilih = filterStatus.value;
-
         const dataTersaring = currentData.filter(pegawai => {
-            // Cek Pencarian (Berdasarkan NIK atau Nama)
             const cocokKeyword = (pegawai.nama && pegawai.nama.toLowerCase().includes(keyword)) || 
                                  (pegawai.nik && pegawai.nik.toLowerCase().includes(keyword));
-            
-            // Cek Filter (Berdasarkan Status)
             const cocokStatus = (statusTerpilih === "") || (pegawai.status === statusTerpilih);
-
             return cocokKeyword && cocokStatus;
         });
-
         renderTabel(dataTersaring);
     }
 
-    // Dapatkan semua status unik dari database untuk dimasukkan ke opsi dropdown filter
     function updateOpsiFilter() {
         const listStatus = [...new Set(currentData.map(p => p.status).filter(Boolean))];
         filterStatus.innerHTML = `<option value="">Semua Status Pegawai</option>` + 
             listStatus.map(status => `<option value="${status}">${status}</option>`).join('');
     }
 
-    // Pasang Event Listener agar tabel langsung berubah saat diketik/dipilih
     inputCari.addEventListener('input', terapkanPencarianDanFilter);
     filterStatus.addEventListener('change', terapkanPencarianDanFilter);
 
-    // --- 4. FITUR TAMBAH / EDIT ---
-
-    // Tombol Tambah Baru
-    document.getElementById('btnTambahBaru').onclick = () => {
-        form.reset(); // Kosongkan form
-        document.getElementById('form_id_pegawai').value = ''; // Pastikan ID kosong (Penanda INSERT)
-        modalTitle.innerText = "Tambah Master Pegawai Baru";
-        modal.style.display = 'flex';
-    };
-
-    // Tombol Edit (Dipanggil dari HTML onclick tabel)
-    window.bukaForm = (id) => {
-        form.reset(); // Kosongkan sisa form sebelumnya
-        modalTitle.innerText = "Edit Data Pegawai";
-        
+    // --- 4. FITUR VIEW DETAIL (BARU) ---
+    window.bukaDetail = (id) => {
         const pegawai = currentData.find(p => p.id_pegawai == id);
         if(!pegawai) return;
 
-        // Looping otomatis isi form berdasarkan id input
+        // Kosongkan konten sebelumnya
+        kontenDetail.innerHTML = '';
+
+        // Definisi kolom apa saja yang mau ditampilkan (Bisa disesuaikan urutannya)
+        const kolomTampil = [
+            { key: 'nik', label: 'NIK' }, { key: 'nip', label: 'NIP' }, { key: 'nama', label: 'Nama Lengkap' },
+            { key: 'tempat_lahir', label: 'Tempat Lahir' }, { key: 'tanggal_lahir', label: 'Tgl Lahir' },
+            { key: 'jenis_kelamin', label: 'Jenis Kelamin' }, { key: 'agama', label: 'Agama' },
+            { key: 'status_keluarga', label: 'Status Keluarga' }, { key: 'no_telp', label: 'No Telp' },
+            { key: 'email', label: 'Email' }, { key: 'alamat', label: 'Alamat' },
+            { key: 'status', label: 'Status Pegawai' }, { key: 'kelompok_pegawai', label: 'Kelp. Pegawai' },
+            { key: 'kelompok_jabatan', label: 'Kelp. Jabatan' }, { key: 'gol', label: 'Golongan' },
+            { key: 'jabatan', label: 'Jabatan' }, { key: 'ruangan', label: 'Ruangan' },
+            { key: 'tmt_pangkat', label: 'TMT Pangkat' }, { key: 'tmt_berikutnya', label: 'TMT Berikutnya' },
+            { key: 'tmt_cpns', label: 'TMT CPNS' }, { key: 'masuk_rs', label: 'Masuk RS' },
+            { key: 'masa_kerja_rs', label: 'Masa Kerja RS' }, { key: 'rentang_bup', label: 'Rentang BUP' },
+            { key: 'tmt_pensiun', label: 'TMT Pensiun' }, { key: 'jenjang', label: 'Jenjang Pddk' },
+            { key: 'fakultas', label: 'Fakultas' }, { key: 'jurusan', label: 'Jurusan' },
+            { key: 'no_bpjsn', label: 'No BPJS Kesh' }, { key: 'no_bpjsket_taspen', label: 'No BPJS TK' },
+            { key: 'npwp', label: 'NPWP' }
+        ];
+
+        // Looping untuk membuat elemen UI
+        kolomTampil.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'detail-item';
+            
+            // Format ulang teks jika null/kosong
+            let nilai = pegawai[item.key];
+            if(nilai === null || nilai === "") nilai = "-";
+
+            div.innerHTML = `
+                <span class="detail-label">${item.label}</span>
+                <span class="detail-value">${nilai}</span>
+            `;
+            
+            // Jika alamat, buat agar memakan 3 kolom (full width)
+            if(item.key === 'alamat') div.style.gridColumn = 'span 3';
+            
+            kontenDetail.appendChild(div);
+        });
+
+        modalDetail.style.display = 'flex';
+    };
+
+    // Tombol tutup Detail
+    document.getElementById('btnTutupDetail').onclick = () => modalDetail.style.display = 'none';
+
+
+    // --- 5. FITUR TAMBAH / EDIT ---
+    document.getElementById('btnTambahBaru').onclick = () => {
+        form.reset(); 
+        document.getElementById('form_id_pegawai').value = ''; 
+        modalTitle.innerText = "Tambah Master Pegawai Baru";
+        modalForm.style.display = 'flex';
+    };
+
+    window.bukaForm = (id) => {
+        form.reset(); 
+        modalTitle.innerText = "Edit Data Pegawai";
+        const pegawai = currentData.find(p => p.id_pegawai == id);
+        if(!pegawai) return;
+
         Object.keys(pegawai).forEach(key => {
             const inputElement = document.getElementById(`form_${key}`);
             if(inputElement) inputElement.value = pegawai[key] || '';
         });
-
-        modal.style.display = 'flex';
+        modalForm.style.display = 'flex';
     };
 
-    // --- 5. LOGIKA SIMPAN & HAPUS KE DATABASE ---
 
+    // --- 6. LOGIKA SIMPAN & HAPUS KE DATABASE ---
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const btnSimpan = document.getElementById('btnSimpanData');
         btnSimpan.innerText = "Menyimpan...";
 
-        // Ambil Data Form
         const formData = new FormData(form);
         const dataObj = Object.fromEntries(formData.entries());
-        
         const id_pegawai = dataObj.id_pegawai;
-        delete dataObj.id_pegawai; // Buang ID dari object untuk menghindari error
+        delete dataObj.id_pegawai;
 
-        // Ubah string kosong ('') dari input tanggal menjadi null agar Supabase tidak menolak
         Object.keys(dataObj).forEach(key => {
             if (dataObj[key] === "") dataObj[key] = null;
         });
 
         if (id_pegawai) {
-            // PROSES UPDATE
             const { error } = await supabase.from('pegawai').update(dataObj).eq('id_pegawai', id_pegawai);
             if (error) alert('Gagal update: ' + error.message);
         } else {
-            // PROSES INSERT (TAMBAH BARU)
             const { error } = await supabase.from('pegawai').insert([dataObj]);
             if (error) alert('Gagal menambah data: ' + error.message);
         }
 
         btnSimpan.innerHTML = `<i class="fas fa-save"></i> Simpan Data`;
-        modal.style.display = 'none';
-        loadData(); // Refresh Data
+        modalForm.style.display = 'none';
+        loadData();
     });
 
     window.hapusDataPegawai = async (id) => {
         if(confirm('Yakin ingin menghapus data master pegawai ini?')) {
             await supabase.from('pegawai').delete().eq('id_pegawai', id);
-            loadData(); // Refresh Data
+            loadData(); 
         }
     };
 
-    // Tutup modal
-    document.getElementById('btnTutupModal').onclick = () => modal.style.display = 'none';
+    document.getElementById('btnTutupModal').onclick = () => modalForm.style.display = 'none';
 
-    // Eksekusi load data saat pertama kali file dimuat
+    // Eksekusi load data
     loadData();
 }
