@@ -3,304 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Database Pegawai</title>
-    <!-- Font Awesome untuk Ikon -->
+    <title>Sistem SDM - Dashboard</title>
+    <!-- Ikon & Font -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     
     <style>
-        /* --- Reset & Variabel Warna --- */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        :root { --bg-color: #f4f7f6; --sidebar-bg: #1e293b; --sidebar-hover: #334155; --text-main: #333; --primary-color: #3b82f6; }
+        body { display: flex; height: 100vh; background-color: var(--bg-color); overflow: hidden; }
 
-        :root {
-            --bg-color: #f4f7f6;
-            --sidebar-bg: #1e293b;
-            --sidebar-hover: #334155;
-            --text-main: #333;
-            --text-light: #f8fafc;
-            --primary-color: #3b82f6;
-        }
+        /* Sidebar */
+        .sidebar { width: 260px; background-color: var(--sidebar-bg); color: #f8fafc; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 24px; font-size: 1.2rem; font-weight: 600; text-align: center; border-bottom: 1px solid #334155; }
+        .nav-links { list-style: none; padding: 15px 0; flex: 1; }
+        .nav-item { padding: 12px 24px; cursor: pointer; display: flex; align-items: center; gap: 12px; color: #cbd5e1; }
+        .nav-item:hover, .nav-item.active { background-color: var(--sidebar-hover); color: white; border-left: 4px solid var(--primary-color); }
+        
+        /* Dropdown */
+        .dropdown-btn { display: flex; justify-content: space-between; width: 100%; border: none; background: none; color: inherit; font-size: 1rem; cursor: pointer; }
+        .dropdown-container { display: none; background-color: #0f172a; flex-direction: column; }
+        .dropdown-container .nav-item { padding-left: 50px; font-size: 0.9rem; border-left: none; }
+        .dropdown-container .nav-item:hover { color: var(--primary-color); }
 
-        body {
-            display: flex;
-            height: 100vh;
-            background-color: var(--bg-color);
-            overflow: hidden;
-        }
-
-        /* --- Sidebar Styles --- */
-        .sidebar {
-            width: 260px;
-            background-color: var(--sidebar-bg);
-            color: var(--text-light);
-            display: flex;
-            flex-direction: column;
-            transition: all 0.3s ease;
-        }
-
-        .sidebar-header {
-            padding: 24px;
-            font-size: 1.2rem;
-            font-weight: 600;
-            text-align: center;
-            border-bottom: 1px solid #334155;
-            letter-spacing: 1px;
-        }
-
-        .nav-links {
-            list-style: none;
-            padding: 15px 0;
-            flex: 1;
-        }
-
-        .nav-item {
-            padding: 12px 24px;
-            cursor: pointer;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: #cbd5e1;
-        }
-
-        .nav-item:hover, .nav-item.active {
-            background-color: var(--sidebar-hover);
-            color: white;
-            border-left: 4px solid var(--primary-color);
-        }
-
-        /* --- Dropdown Menu Sidebar --- */
-        .dropdown-btn {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            border: none;
-            background: none;
-            color: inherit;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-
-        .dropdown-container {
-            display: none;
-            background-color: #0f172a;
-            flex-direction: column;
-        }
-
-        .dropdown-container .nav-item {
-            padding-left: 50px;
-            font-size: 0.9rem;
-            border-left: none;
-        }
-
-        .dropdown-container .nav-item:hover {
-            border-left: none;
-            color: var(--primary-color);
-        }
-
-        /* --- Main Content Area --- */
-        .main-wrapper {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
-
-        /* --- Topbar --- */
-        .topbar {
-            height: 70px;
-            background-color: white;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            z-index: 10;
-        }
-
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        /* --- Topbar Dropdown Profile --- */
-        .profile-dropdown {
-            position: relative;
-            display: inline-block;
-        }
-
-        .profile-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 600;
-        }
-
-        .profile-btn img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .profile-content {
-            display: none;
-            position: absolute;
-            right: 0;
-            background-color: white;
-            min-width: 160px;
-            box-shadow: 0px 8px 16px rgba(0,0,0,0.1);
-            border-radius: 8px;
-            overflow: hidden;
-            top: 50px;
-        }
-
-        .profile-content a {
-            color: var(--text-main);
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-            font-size: 0.9rem;
-        }
-
-        .profile-content a:hover {
-            background-color: #f1f5f9;
-            color: var(--primary-color);
-        }
-
-        .profile-dropdown:hover .profile-content {
-            display: block;
-        }
-
-        /* --- Content Container --- */
-        #app-content {
-            padding: 30px;
-            flex: 1;
-        }
-
+        /* Main Area */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+        .topbar { height: 70px; background-color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .profile-btn { background: none; border: none; display: flex; align-items: center; gap: 10px; font-weight: 600; cursor: pointer; }
+        .profile-btn img { width: 40px; height: 40px; border-radius: 50%; }
+        #app-content { padding: 30px; flex: 1; }
     </style>
 </head>
 <body>
 
-    <!-- SIDEBAR -->
+    <!-- Sidebar -->
     <aside class="sidebar">
-        <div class="sidebar-header">
-            <i class="fas fa-layer-group"></i> Sistem SDM
-        </div>
+        <div class="sidebar-header"><i class="fas fa-layer-group"></i> Sistem SDM</div>
         <ul class="nav-links">
-            <li class="nav-item active" onclick="loadPage('dashboard')">
-                <i class="fas fa-home"></i> Dashboard
-            </li>
+            <li class="nav-item" onclick="loadPage('dashboard', this)"><i class="fas fa-home"></i> Dashboard</li>
             
-            <!-- Dropdown Menu Pegawai -->
             <li class="nav-item" onclick="toggleDropdown()">
                 <button class="dropdown-btn">
-                    <span><i class="fas fa-users"></i> Manajemen Pegawai</span>
-                    <i class="fas fa-caret-down"></i>
+                    <span><i class="fas fa-users"></i> Pegawai</span> <i class="fas fa-caret-down"></i>
                 </button>
             </li>
             <div class="dropdown-container" id="pegawaiMenu">
-                <li class="nav-item" onclick="loadPage('pegawai')">
-                    <i class="fas fa-table"></i> Data Utama
-                </li>
-                <li class="nav-item" onclick="loadPage('pegawai-masuk')">
-                    <i class="fas fa-user-plus"></i> Pegawai Masuk
-                </li>
-                <li class="nav-item" onclick="loadPage('pegawai-keluar')">
-                    <i class="fas fa-user-minus"></i> Pegawai Keluar
-                </li>
+                <li class="nav-item" onclick="loadPage('pegawai', this)"><i class="fas fa-table"></i> Data Utama</li>
+                <li class="nav-item" onclick="loadPage('pegawai-baru', this)"><i class="fas fa-user-plus"></i> Pegawai Baru</li>
             </div>
-            
-            <li class="nav-item" onclick="loadPage('pengaturan')">
-                <i class="fas fa-cog"></i> Pengaturan
-            </li>
         </ul>
     </aside>
 
-    <!-- MAIN WRAPPER -->
+    <!-- Main Content -->
     <div class="main-wrapper">
-        <!-- TOPBAR -->
         <header class="topbar">
-            <div class="topbar-left">
-                <h3 style="color: #64748b; font-weight: 400;" id="page-title">Overview</h3>
-            </div>
-            
-            <div class="topbar-right">
-                <i class="fas fa-bell" style="color: #94a3b8; cursor: pointer;"></i>
-                
-                <!-- Dropdown Profil -->
-                <div class="profile-dropdown">
-                    <button class="profile-btn">
-                        <img src="https://ui-avatars.com/api/?name=Admin&background=3b82f6&color=fff" alt="Admin">
-                        Admin
-                        <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
-                    </button>
-                    <div class="profile-content">
-                        <a href="#"><i class="fas fa-user-circle"></i> Profil Saya</a>
-                        <a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                    </div>
-                </div>
-            </div>
+            <h3 style="color: #64748b; font-weight: 400;" id="page-title">Loading...</h3>
+            <button class="profile-btn"><img src="https://ui-avatars.com/api/?name=Admin&background=3b82f6&color=fff" alt="Admin"> Admin</button>
         </header>
-
-        <!-- KONTEN DINAMIS -->
-        <main id="app-content">
-            <!-- Konten dari file JS akan di-render di sini -->
-        </main>
+        <main id="app-content"></main>
     </div>
 
-    <!-- SCRIPT LOGIKA UI & ROUTING -->
     <script>
-        // Logika untuk membuka/menutup Dropdown Sidebar
         function toggleDropdown() {
-            const dropdown = document.getElementById("pegawaiMenu");
-            if (dropdown.style.display === "flex") {
-                dropdown.style.display = "none";
-            } else {
-                dropdown.style.display = "flex";
-            }
+            const dp = document.getElementById("pegawaiMenu");
+            dp.style.display = (dp.style.display === "flex") ? "none" : "flex";
         }
-
-        // Simulasi fungsi loadPage sebelum app.js mengambil alih (bisa dihapus nanti jika app.js sudah mengatur routing)
-        window.loadPage = (page) => {
-            const container = document.getElementById('app-content');
-            const pageTitle = document.getElementById('page-title');
-            
-            // Hapus kelas 'active' dari semua menu
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            
-            // Tambahkan kelas 'active' pada elemen yang diklik (menggunakan event.currentTarget)
-            if(event && event.currentTarget) {
-                event.currentTarget.classList.add('active');
-            }
-
-            // Dummy Render (Nanti diganti dengan fungsi dari app.js)
-            pageTitle.innerText = page.toUpperCase().replace('-', ' ');
-            container.innerHTML = `
-                <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                    <h2>Halaman ${page}</h2>
-                    <p style="margin-top: 10px; color: #64748b;">Ini adalah tampilan sementara untuk halaman ${page}. Nantinya data akan ditarik dari Supabase.</p>
-                </div>
-            `;
-        };
-
-        // Load halaman pertama kali
-        window.onload = () => loadPage('dashboard');
     </script>
-
-    <!-- Hubungkan ke Pusat Sistem Anda (Nanti aktifkan jika file sudah siap) -->
-    <!-- <script type="module" src="js/app.js"></script> -->
-
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>
