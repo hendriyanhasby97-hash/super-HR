@@ -1,5 +1,4 @@
 import { supabase } from './koneksi.js';
-// Impor PapaParse untuk membaca file CSV dengan akurat dan aman
 import Papa from 'https://cdn.jsdelivr.net/npm/papaparse@5.4.1/+esm';
 
 export function renderPegawai(container) {
@@ -21,7 +20,6 @@ export function renderPegawai(container) {
             .filter-group input, .filter-group select { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none; }
             .filter-group input { width: 250px; }
             
-            /* Modal Styles */
             .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 100;}
             .modal-content { background: white; padding: 25px; border-radius: 8px; width: 800px; max-height: 90vh; overflow-y: auto; }
             
@@ -49,7 +47,6 @@ export function renderPegawai(container) {
             <div style="display: flex; gap: 10px;">
                 <button class="btn btn-import" id="btnTriggerImport"><i class="fas fa-file-import"></i> Import CSV</button>
                 <input type="file" id="inputCSV" accept=".csv" style="display: none;">
-                
                 <button class="btn btn-tambah" id="btnTambahBaru"><i class="fas fa-plus"></i> Tambah Pegawai</button>
             </div>
         </div>
@@ -160,7 +157,7 @@ export function renderPegawai(container) {
                             <div class="form-group"><label>TMT CPNS (Khusus ASN)</label><input type="date" name="tmt_cpns" id="form_tmt_cpns"></div>
                             
                             <div class="form-group"><label>Tanggal Masuk RS</label><input type="date" name="masuk_rs" id="form_masuk_rs"></div>
-                            <div class="form-group"><label>Masa Kerja RS (Auto)</label><input type="text" name="relationship_or_tenure" id="form_masa_kerja_rs" readonly placeholder="Otomatis dihitung..."></div>
+                            <div class="form-group"><label>Masa Kerja RS (Auto)</label><input type="text" name="masa_kerja_rs" id="form_masa_kerja_rs" readonly placeholder="Otomatis dihitung..."></div>
                             <div class="form-group"><label>Rentang BUP</label><input type="text" name="rentang_bup" id="form_rentang_bup"></div>
                             <div class="form-group"><label>TMT Pensiun</label><input type="date" name="tmt_pensiun" id="form_tmt_pensiun"></div>
                         </div>
@@ -226,7 +223,6 @@ function initLogikaPegawai() {
     const inputCari = document.getElementById('inputCari');
     const filterStatus = document.getElementById('filterStatus');
 
-    // Elemen fungsional CSV
     const btnTriggerImport = document.getElementById('btnTriggerImport');
     const inputCSV = document.getElementById('inputCSV');
 
@@ -311,16 +307,17 @@ function initLogikaPegawai() {
             header: true,
             skipEmptyLines: true,
             complete: async function(results) {
-                // Proses pembersihan data massal (Mencegah error 'Status column not present')
                 const sanitizedData = results.data.map(row => {
                     const cleanRow = {};
                     Object.keys(row).forEach(key => {
-                        // Paksa semua header kolom di file CSV menjadi huruf kecil dan hilangkan spasi kosong
-                        const cleanKey = key.trim().toLowerCase();
+                        let cleanKey = key.trim().toLowerCase().replace(/\s+/g, '_');
                         let value = row[key] ? row[key].trim() : null;
                         
-                        // Normalisasi kolom string kosong menjadi null agar bisa diterima PostgreSQL
                         if (value === "") value = null;
+                        
+                        if (cleanKey === 'id_pegawai' && value === null) {
+                            return; 
+                        }
                         
                         cleanRow[cleanKey] = value;
                     });
@@ -335,14 +332,13 @@ function initLogikaPegawai() {
 
                 btnTriggerImport.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Mengirim ke Database...`;
                 
-                // Bulk Insert sekaligus ke Supabase
                 const { error } = await supabase.from('pegawai').insert(sanitizedData);
 
                 if (error) {
                     alert("Gagal melakukan import data massal.\nPesan Error: " + error.message);
                 } else {
                     alert(`Sukses! Berhasil menambahkan ${sanitizedData.length} data pegawai secara massal.`);
-                    loadData(); // Memuat ulang tabel utama
+                    loadData(); 
                 }
 
                 resetTombolImport();
@@ -357,7 +353,7 @@ function initLogikaPegawai() {
     function resetTombolImport() {
         btnTriggerImport.innerHTML = `<i class="fas fa-file-import"></i> Import CSV`;
         btnTriggerImport.disabled = false;
-        inputCSV.value = ''; // Reset input file agar bisa memilih file yang sama lagi
+        inputCSV.value = ''; 
     }
 
 
@@ -413,6 +409,7 @@ function initLogikaPegawai() {
         const baseOptions = ["Aktif", "Mutasi", "Pensiun", "Resign", "Meninggal", "Lainnya"];
         const dbStatus = [...new Set(currentData.map(p => p.status).filter(Boolean))];
         const allStatus = [...new Set([...baseOptions, ...dbStatus])];
+
         filterStatus.innerHTML = `<option value="">Semua Status Pegawai</option>` + 
             allStatus.map(status => `<option value="${status}">${status}</option>`).join('');
     }
@@ -449,6 +446,7 @@ function initLogikaPegawai() {
             div.className = 'detail-item';
             let nilai = pegawai[item.key];
             if(nilai === null || nilai === "") nilai = "-";
+
             div.innerHTML = `<span class="detail-label">${item.label}</span><span class="detail-value">${nilai}</span>`;
             if(item.key === 'alamat') div.style.gridColumn = 'span 3';
             kontenDetail.appendChild(div);
@@ -459,7 +457,7 @@ function initLogikaPegawai() {
 
     document.getElementById('btnTutupDetail').onclick = () => modalDetail.style.display = 'none';
 
-    // --- 7. FITUR TAMBAH / EDIT MANUAL ---
+    // --- 7. FITUR TAMBAH / EDIT ---
     document.getElementById('btnTambahBaru').onclick = () => {
         form.reset(); 
         document.getElementById('form_id_pegawai').value = ''; 
@@ -483,7 +481,7 @@ function initLogikaPegawai() {
         modalForm.style.display = 'flex';
     };
 
-    // --- 8. LOGIKA SIMPAN & HAPUS MANUAL KE DATABASE ---
+    // --- 8. LOGIKA SIMPAN & HAPUS KE DATABASE ---
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
@@ -491,7 +489,7 @@ function initLogikaPegawai() {
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (emailInput && !emailPattern.test(emailInput)) {
             alert("Format email tidak valid. Pastikan penulisan benar (contoh: budi@gmail.com)");
-            return;
+            return; 
         }
 
         const btnSimpan = document.getElementById('btnSimpanData');
@@ -528,6 +526,6 @@ function initLogikaPegawai() {
 
     document.getElementById('btnTutupModal').onclick = () => modalForm.style.display = 'none';
 
-    // Ambil data pertama kali halaman siap
+    // Eksekusi load data
     loadData();
 }
