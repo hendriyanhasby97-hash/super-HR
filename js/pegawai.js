@@ -103,8 +103,8 @@ export function renderPegawai(container) {
                             </div>
                             
                             <div class="form-group"><label>No Telp</label><input type="text" name="no_telp" id="form_no_telp"></div>
-                            <div class="form-group"><label>Email (Wajib Valid)</label><input type="email" name="email" id="form_email" placeholder="contoh@email.com"></div>
-                            <div class="form-group"><label>Password (Sistem)</label><input type="text" name="password" id="form_password"></div>
+                            <div class="form-group"><label>Email</label><input type="email" name="email" id="form_email" placeholder="contoh@email.com"></div>
+                            <div class="form-group"><label>Password Akun Portal</label><input type="text" name="password" id="form_password" placeholder="Default: masuk123"></div>
                             <div class="form-group" style="grid-column: span 2;"><label>Alamat</label><input type="text" name="alamat" id="form_alamat"></div>
                         </div>
                     </fieldset>
@@ -315,12 +315,19 @@ function initLogikaPegawai() {
                         
                         if (value === "") value = null;
                         
+                        // Abaikan kolom ID bawaan Excel
                         if (cleanKey === 'id_pegawai' && value === null) {
                             return; 
                         }
                         
                         cleanRow[cleanKey] = value;
                     });
+                    
+                    // OTOMATIS TAMBAHKAN PASSWORD DEFAULT JIKA KOSONG DARI EXCEL
+                    if (!cleanRow.password) {
+                        cleanRow.password = 'masuk123';
+                    }
+
                     return cleanRow;
                 });
 
@@ -461,6 +468,10 @@ function initLogikaPegawai() {
     document.getElementById('btnTambahBaru').onclick = () => {
         form.reset(); 
         document.getElementById('form_id_pegawai').value = ''; 
+        
+        // SET PASSWORD DEFAULT SAAT TAMBAH PEGAWAI BARU MANUAL
+        document.getElementById('form_password').value = 'masuk123';
+        
         cekStatusASN(); 
         modalTitle.innerText = "Tambah Master Pegawai Baru";
         modalForm.style.display = 'flex';
