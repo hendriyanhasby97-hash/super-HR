@@ -3,75 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem SDM - Dashboard</title>
-    <!-- Ikon & Font -->
+    <title>Sistem Informasi HRD Dashboard</title>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        :root { --bg-color: #f4f7f6; --sidebar-bg: #1e293b; --sidebar-hover: #334155; --text-main: #333; --primary-color: #3b82f6; }
-        body { display: flex; height: 100vh; background-color: var(--bg-color); overflow: hidden; }
+        /* Reset Dasar */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { display: flex; height: 100vh; background-color: #f1f5f9; color: #334155; overflow: hidden; }
 
-        /* Sidebar */
-        .sidebar { width: 260px; background-color: var(--sidebar-bg); color: #f8fafc; display: flex; flex-direction: column; }
-        .sidebar-header { padding: 24px; font-size: 1.2rem; font-weight: 600; text-align: center; border-bottom: 1px solid #334155; }
-        .nav-links { list-style: none; padding: 15px 0; flex: 1; }
-        .nav-item { padding: 12px 24px; cursor: pointer; display: flex; align-items: center; gap: 12px; color: #cbd5e1; }
-        .nav-item:hover, .nav-item.active { background-color: var(--sidebar-hover); color: white; border-left: 4px solid var(--primary-color); }
+        /* Gaya Sidebar (Menu Kiri) */
+        .sidebar { width: 260px; background-color: #1e293b; color: white; display: flex; flex-direction: column; flex-shrink: 0; }
+        .sidebar-header { padding: 25px 20px; text-align: center; border-bottom: 1px solid #334155; }
+        .sidebar-header h2 { font-size: 1.3rem; color: #38bdf8; margin: 0; display: flex; align-items: center; justify-content: center; gap: 10px; }
         
-        /* Dropdown */
-        .dropdown-btn { display: flex; justify-content: space-between; width: 100%; border: none; background: none; color: inherit; font-size: 1rem; cursor: pointer; }
-        .dropdown-container { display: none; background-color: #0f172a; flex-direction: column; }
-        .dropdown-container .nav-item { padding-left: 50px; font-size: 0.9rem; border-left: none; }
-        .dropdown-container .nav-item:hover { color: var(--primary-color); }
+        .nav-menu { list-style: none; padding: 15px 0; flex-grow: 1; overflow-y: auto; }
+        .nav-item { padding: 15px 25px; cursor: pointer; display: flex; align-items: center; gap: 12px; border-left: 4px solid transparent; transition: 0.2s ease-in-out; font-size: 0.95rem; }
+        .nav-item i { width: 20px; text-align: center; font-size: 1.1rem; opacity: 0.8; }
+        .nav-item:hover { background-color: #334155; color: white; }
+        .nav-item.active { background-color: #0f172a; border-left-color: #38bdf8; color: #38bdf8; font-weight: 600; }
+        .nav-item.active i { opacity: 1; }
 
-        /* Main Area */
-        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
-        .topbar { height: 70px; background-color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .profile-btn { background: none; border: none; display: flex; align-items: center; gap: 10px; font-weight: 600; cursor: pointer; }
-        .profile-btn img { width: 40px; height: 40px; border-radius: 50%; }
-        #app-content { padding: 30px; flex: 1; }
+        /* Tombol Portal Pegawai di Sidebar Bawah */
+        .portal-link-container { padding: 20px; border-top: 1px solid #334155; background-color: #1e293b; }
+        .portal-link { display: block; text-decoration: none; background: #0ea5e9; color: white; padding: 12px 10px; border-radius: 6px; text-align: center; font-weight: bold; font-size: 0.9rem; transition: background 0.3s; }
+        .portal-link:hover { background: #0284c7; }
+
+        /* Area Konten Utama (Kanan) */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* Header Atas (Top Bar) */
+        .topbar { background-color: white; padding: 20px 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); z-index: 10; display: flex; justify-content: space-between; align-items: center; }
+        .topbar h2 { font-size: 1.4rem; color: #0f172a; margin: 0; text-transform: uppercase; letter-spacing: 0.5px; }
+        .admin-profile { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; color: #64748b; font-weight: 600; }
+        
+        /* Wadah Render Javascript (app.js) */
+        #app-content { padding: 30px; overflow-y: auto; flex: 1; }
     </style>
 </head>
 <body>
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-header"><i class="fas fa-layer-group"></i> Sistem SDM</div>
-        <ul class="nav-links">
-            <li class="nav-item" onclick="loadPage('dashboard', this)"><i class="fas fa-home"></i> Dashboard</li>
-            
-            <li class="nav-item" onclick="toggleDropdown()">
-                <button class="dropdown-btn">
-                    <span><i class="fas fa-users"></i> Pegawai</span> <i class="fas fa-caret-down"></i>
-                </button>
-            </li>
-            <div class="dropdown-container" id="pegawaiMenu">
-                <li class="nav-item" onclick="loadPage('pegawai', this)"><i class="fas fa-table"></i> Data Utama</li>
-                <li class="nav-item" onclick="loadPage('pegawai-masuk', this)"><i class="fas fa-user-plus"></i> Pegawai Masuk</li>
-                <li class="nav-item" onclick="loadPage('pegawai-keluar', this)"><i class="fas fa-sign-out-alt"></i> Pegawai Keluar</li>
-                <li class="nav-item" onclick="loadPage('sik', this)"><i class="fas fa-file-medical"></i> Berkas SIK Pegawai</li>
-                <li class="nav-item" onclick="loadPage('str', this)"><i class="fas fa-id-card-alt"></i> Berkas STR Pegawai</li>
-            </div>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-hospital-symbol"></i> HRIS System</h2>
+        </div>
+        
+        <ul class="nav-menu">
+            <li class="nav-item active" onclick="loadPage('dashboard', this)"><i class="fas fa-chart-pie"></i> Dashboard</li>
+            <li class="nav-item" onclick="loadPage('pegawai', this)"><i class="fas fa-users"></i> Data Master Pegawai</li>
+            <li class="nav-item" onclick="loadPage('pegawai-masuk', this)"><i class="fas fa-user-plus"></i> Histori Pegawai Masuk</li>
+            <li class="nav-item" onclick="loadPage('pegawai-keluar', this)"><i class="fas fa-sign-out-alt"></i> Histori Pegawai Keluar</li>
+            <li class="nav-item" onclick="loadPage('sik', this)"><i class="fas fa-file-medical"></i> Berkas SIK / SIP</li>
+            <li class="nav-item" onclick="loadPage('str', this)"><i class="fas fa-id-card-alt"></i> Berkas STR</li>
         </ul>
-    </aside>
 
-    <!-- Main Content -->
-    <div class="main-wrapper">
-        <header class="topbar">
-            <h3 style="color: #64748b; font-weight: 400;" id="page-title">Loading...</h3>
-            <button class="profile-btn"><img src="https://ui-avatars.com/api/?name=Admin&background=3b82f6&color=fff" alt="Admin"> Admin</button>
-        </header>
-        <main id="app-content"></main>
+        <div class="portal-link-container">
+            <a href="portal.html" target="_blank" class="portal-link">
+                <i class="fas fa-external-link-square-alt"></i> Buka Portal Pegawai
+            </a>
+        </div>
     </div>
 
-    <script>
-        function toggleDropdown() {
-            const dp = document.getElementById("pegawaiMenu");
-            dp.style.display = (dp.style.display === "flex") ? "none" : "flex";
-        }
-    </script>
-    <script type="module" src="js/app.js"></script>
+    <div class="main-wrapper">
+        <div class="topbar">
+            <h2 id="page-title">Memuat...</h2>
+            
+            <div class="admin-profile">
+                <span><i class="fas fa-user-shield" style="color: #0ea5e9;"></i> Administrator</span>
+            </div>
+        </div>
+        
+        <div id="app-content">
+            <div style="text-align:center; margin-top:50px; color:#94a3b8;">
+                <i class="fas fa-circle-notch fa-spin fa-3x"></i>
+                <p style="margin-top:15px;">Menyiapkan sistem...</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./js/app.js"></script>
+
 </body>
 </html>
