@@ -98,9 +98,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 .maybeSingle();
 
             if (data) {
-                // Simpan identitas pegawai ke session dan lempar ke portal.html
+                // Simpan NIK saja ke sessionStorage
                 sessionStorage.setItem('hris_role', 'user');
-                sessionStorage.setItem('userData_aktif', JSON.stringify(data));
+                sessionStorage.setItem('nik_user', data.nik); 
                 window.location.href = 'portal.html';
             } else {
                 loginError.style.display = 'block';
