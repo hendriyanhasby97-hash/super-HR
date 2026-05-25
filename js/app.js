@@ -1,5 +1,7 @@
+// PASTIKAN 3 BARIS IMPORT INI ADA DI PALING ATAS
 import { renderPegawai } from './pegawai.js';
 import { renderPegawaiMasuk } from './pegawai-masuk.js';
+import { renderDashboard } from './dashboard.js'; 
 
 window.loadPage = (page, element = null) => {
     const container = document.getElementById('app-content');
@@ -15,8 +17,7 @@ window.loadPage = (page, element = null) => {
     switch (page) {
         case 'dashboard':
             pageTitle.innerText = "DASHBOARD STATISTIK SDM";
-            // 2. Ganti teks dummy sebelumnya dengan fungsi dari dashboard.js
-            renderDashboard(container); 
+            renderDashboard(container); // Sekarang fungsi ini sudah dikenali
             break;
 
         case 'pegawai':
