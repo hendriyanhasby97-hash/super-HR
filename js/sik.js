@@ -37,6 +37,8 @@ export function renderSIK(container) {
             
             .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 100; }
             .modal-content { background: white; padding: 25px; border-radius: 8px; width: 600px; max-height: 90vh; overflow-y: auto; }
+            
+            .countdown-badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; display: inline-block; }
         </style>
 
         <div class="form-box" id="boxFormSIK">
@@ -94,9 +96,9 @@ export function renderSIK(container) {
                     <tr>
                         <th>NIK</th>
                         <th>Nama</th>
-                        <th>Bidang</th>
                         <th>No. SIP</th>
-                        <th>Masa Berlaku</th>
+                        <th>Tanggal Berakhir</th>
+                        <th>Sisa Masa Berlaku</th>
                         <th>Berkas</th>
                         <th>Aksi</th>
                     </tr>
@@ -154,6 +156,7 @@ function initLogikaSIK() {
     let listData = [];
     let filteredData = [];
 
+    // Logika Checkbox Seumur Hidup
     chkIns.addEventListener('change', () => {
         if(chkIns.checked) { tglIns.disabled = true; tglIns.value = ''; tglIns.required = false; }
         else { tglIns.disabled = false; tglIns.required = true; }
@@ -163,8 +166,45 @@ function initLogikaSIK() {
         else { tglEdit.disabled = false; }
     });
 
+    // Toggle Form
     document.getElementById('btnSembunyikanFormSIK').onclick = () => { document.getElementById('boxFormSIK').style.display = 'none'; document.getElementById('boxShowFormSIK').style.display = 'block'; };
     document.getElementById('btnTampilkanFormSIK').onclick = () => { document.getElementById('boxFormSIK').style.display = 'block'; document.getElementById('boxShowFormSIK').style.display = 'none'; };
+
+    // Fungsi Hitung Mundur Sisa Masa Berlaku
+    function hitungSisaMasaBerlaku(tglAkhirStr) {
+        if (!tglAkhirStr) return { teks: 'Seumur Hidup', bg: '#dcfce7', fg: '#10b981' };
+        
+        const hariIni = new Date();
+        const tglAkhir = new Date(tglAkhirStr);
+        hariIni.setHours(0,0,0,0); tglAkhir.setHours(0,0,0,0);
+
+        if (tglAkhir < hariIni) return { teks: 'Expired / Mati', bg: '#fee2e2', fg: '#ef4444' };
+
+        let thn = tglAkhir.getFullYear() - hariIni.getFullYear();
+        let bln = tglAkhir.getMonth() - hariIni.getMonth();
+        let hri = tglAkhir.getDate() - hariIni.getDate();
+
+        if (hri < 0) {
+            bln--;
+            const bulanLalu = new Date(tglAkhir.getFullYear(), tglAkhir.getMonth(), 0);
+            hri += bulanLalu.getDate();
+        }
+        if (bln < 0) { thn--; bln += 12; }
+
+        const totalSisaBulan = (thn * 12) + bln + (hri / 30);
+
+        let bg = '#dcfce7', fg = '#10b981'; 
+        if (totalSisaBulan <= 3) { bg = '#fee2e2'; fg = '#ef4444'; } 
+        else if (totalSisaBulan <= 6) { bg = '#fef9c3'; fg = '#d97706'; }
+
+        let teksStr = '';
+        if (thn > 0) teksStr += `${thn} Tahun `;
+        if (bln > 0) teksStr += `${bln} Bulan `;
+        teksStr += `${hri} Hari`;
+        if (teksStr === '') teksStr = '0 Hari';
+
+        return { teks: teksStr.trim(), bg: bg, fg: fg };
+    }
 
     async function loadData() {
         const { data, error } = await supabase.from('berkas_sik').select('*').order('tgl_terbit', { ascending: false });
@@ -173,20 +213,24 @@ function initLogikaSIK() {
 
     function renderTabel(data) {
         if(data.length === 0) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Data kosong.</td></tr>`; return; }
-        tbody.innerHTML = data.map(row => `
-            <tr>
-                <td>${row.nik || '-'}</td>
-                <td>${row.nama || '-'}</td>
-                <td>${row.bidang || '-'}</td>
-                <td>${row.no_sip || '-'}</td>
-                <td>${row.tgl_berakhir ? row.tgl_berakhir : '<span style="color:#10b981; font-weight:bold;">Seumur Hidup</span>'}</td>
-                <td>${row.lampiran_url ? `<a href="${row.lampiran_url}" target="_blank" class="btn btn-view"><i class="fas fa-file-pdf"></i> Lihat</a>` : '-'}</td>
-                <td>
-                    <button class="btn btn-edit" onclick="bukaEditSIK('${row.id_sik}')"><i class="fas fa-edit"></i></button>
-                    <button class="btn btn-hapus" onclick="hapusSIK('${row.id_sik}')"><i class="fas fa-trash"></i></button>
-                </td>
-            </tr>
-        `).join('');
+        
+        tbody.innerHTML = data.map(row => {
+            const hitung = hitungSisaMasaBerlaku(row.tgl_berakhir);
+            return `
+                <tr>
+                    <td>${row.nik || '-'}</td>
+                    <td><strong>${row.nama || '-'}</strong></td>
+                    <td>${row.no_sip || '-'}</td>
+                    <td>${row.tgl_berakhir || '-'}</td>
+                    <td><span class="countdown-badge" style="background:${hitung.bg}; color:${hitung.fg};">${hitung.teks}</span></td>
+                    <td>${row.lampiran_url ? `<a href="${row.lampiran_url}" target="_blank" class="btn btn-view"><i class="fas fa-file-pdf"></i> Lihat</a>` : '-'}</td>
+                    <td>
+                        <button class="btn btn-edit" onclick="bukaEditSIK('${row.id_sik}')"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-hapus" onclick="hapusSIK('${row.id_sik}')"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
     }
 
     document.getElementById('inputCariSIK').addEventListener('input', (e) => {
