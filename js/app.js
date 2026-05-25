@@ -14,12 +14,9 @@ window.loadPage = (page, element = null) => {
     // Routing Halaman
     switch (page) {
         case 'dashboard':
-            pageTitle.innerText = "DASHBOARD";
-            container.innerHTML = `
-                <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                    <h2>Selamat Datang di Sistem HRIS/SIMRS</h2>
-                    <p style="color: #64748b; margin-top:10px;">Gunakan menu navigasi di samping untuk mengelola Master Data Pegawai dan Data Pegawai Masuk.</p>
-                </div>`;
+            pageTitle.innerText = "DASHBOARD STATISTIK SDM";
+            // 2. Ganti teks dummy sebelumnya dengan fungsi dari dashboard.js
+            renderDashboard(container); 
             break;
 
         case 'pegawai':
