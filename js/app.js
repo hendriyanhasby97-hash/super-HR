@@ -2,6 +2,7 @@
 import { renderPegawai } from './pegawai.js';
 import { renderPegawaiMasuk } from './pegawai-masuk.js';
 import { renderDashboard } from './dashboard.js'; 
+import { renderPegawaiKeluar } from './pegawai-keluar.js';
 
 window.loadPage = (page, element = null) => {
     const container = document.getElementById('app-content');
@@ -29,6 +30,11 @@ window.loadPage = (page, element = null) => {
             pageTitle.innerText = "DATA PEGAWAI MASUK";
             renderPegawaiMasuk(container);
             break;
+        case 'pegawai-keluar':
+            pageTitle.innerText = "DATA PEGAWAI KELUAR";
+            renderPegawaiKeluar(container);
+            break;
+        
 
         default:
             pageTitle.innerText = "ERROR 404";
