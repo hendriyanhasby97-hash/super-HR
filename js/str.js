@@ -37,7 +37,6 @@ export function renderSTR(container) {
             .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 100; }
             .modal-content { background: white; padding: 25px; border-radius: 8px; width: 600px; max-height: 90vh; overflow-y: auto; }
             
-            /* Badge Hitung Mundur STR */
             .countdown-badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; display: inline-block; }
         </style>
 
@@ -138,11 +137,9 @@ function initLogikaSTR() {
     let listData = [];
     let filteredData = [];
 
-    // Toggle Form Box
     document.getElementById('btnSembunyikanFormSTR').onclick = () => { document.getElementById('boxFormSTR').style.display = 'none'; document.getElementById('boxShowFormSTR').style.display = 'block'; };
     document.getElementById('btnTampilkanFormSTR').onclick = () => { document.getElementById('boxFormSTR').style.display = 'block'; document.getElementById('boxShowFormSTR').style.display = 'none'; };
 
-    // --- LOGIKA HITUNG MUNDUR SISA WAKTU SANGAT DETAIL ---
     function hitungSisaMasaBerlaku(tglAkhirStr) {
         if (!tglAkhirStr) return { teks: '-', bg: '#f1f5f9', fg: '#64748b' };
         
@@ -169,14 +166,13 @@ function initLogikaSTR() {
             bln += 12;
         }
 
-        // Hitung total sisa bulan untuk penentuan ambang batas warna
         const totalSisaBulan = (thn * 12) + bln + (hri / 30);
 
-        let bg = '#dcfce7', fg = '#10b981'; // Default Hijau (> 6 Bulan)
+        let bg = '#dcfce7', fg = '#10b981'; 
         if (totalSisaBulan <= 3) {
-            bg = '#fee2e2'; fg = '#ef4444'; // Merah (0-3 Bulan)
+            bg = '#fee2e2'; fg = '#ef4444'; 
         } else if (totalSisaBulan <= 6) {
-            bg = '#fef9c3'; fg = '#d97706'; // Kuning (3-6 Bulan)
+            bg = '#fef9c3'; fg = '#d97706'; 
         }
 
         let teksStr = '';
@@ -187,9 +183,8 @@ function initLogikaSTR() {
         return { teks: teksStr.trim(), bg: bg, fg: fg };
     }
 
-    // --- LOAD DATA ---
     async function loadData() {
-        const { data, error } = await supabase.from('str').select('*').order('tgl_berakhir', { ascending: true });
+        const { data, error } = await supabase.from('berkas_str').select('*').order('tgl_berakhir', { ascending: true });
         if (!error) { listData = data; filteredData = data; renderTabel(filteredData); }
     }
 
@@ -215,14 +210,12 @@ function initLogikaSTR() {
         }).join('');
     }
 
-    // Pencarian
     document.getElementById('inputCariSTR').addEventListener('input', (e) => {
         const kw = e.target.value.toLowerCase();
         filteredData = listData.filter(p => p.nama.toLowerCase().includes(kw) || p.nik.includes(kw) || p.no_str.toLowerCase().includes(kw));
         renderTabel(filteredData);
     });
 
-    // Upload Helper
     async function uploadFile(fileInput, bucketName) {
         if (!fileInput || fileInput.files.length === 0) return null;
         const file = fileInput.files[0];
@@ -232,7 +225,6 @@ function initLogikaSTR() {
         return supabase.storage.from(bucketName).getPublicUrl(fileName).data.publicUrl;
     }
 
-    // INSERT
     formInsert.addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('btnSimpanSTR');
@@ -242,7 +234,7 @@ function initLogikaSTR() {
         const dataObj = Object.fromEntries(new FormData(formInsert).entries());
         if(url) dataObj.lampiran_url = url;
 
-        const { error } = await supabase.from('str').insert([dataObj]);
+        const { error } = await supabase.from('berkas_str').insert([dataObj]);
         if(!error) { formInsert.reset(); loadData(); }
         btn.innerHTML = `<i class="fas fa-save"></i> Simpan Data STR`; btn.disabled = false;
     });
@@ -251,7 +243,6 @@ function initLogikaSTR() {
         const item = listData.find(p => p.id_str == id);
         if(!item) return;
         
-        // Pengecekan manual tgl_terbit / tgl_berakhir di database vs id form
         document.getElementById('edit_id_str').value = item.id_str;
         document.getElementById('edit_nik').value = item.nik || '';
         document.getElementById('edit_nama').value = item.nama || '';
@@ -265,7 +256,6 @@ function initLogikaSTR() {
 
     document.getElementById('btnTutupEditSTR').onclick = () => modal.style.display = 'none';
 
-    // UPDATE
     formEdit.addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = document.getElementById('edit_id_str').value;
@@ -282,15 +272,14 @@ function initLogikaSTR() {
         const url = await uploadFile(document.getElementById('edit_file_str'), 'lampiran_str');
         if(url) dataObj.lampiran_url = url;
 
-        const { error } = await supabase.from('str').update(dataObj).eq('id_str', id);
+        const { error } = await supabase.from('berkas_str').update(dataObj).eq('id_str', id);
         if(!error) { modal.style.display = 'none'; loadData(); } else { alert(error.message); }
     });
 
     window.hapusSTR = async (id) => {
-        if(confirm('Hapus data STR ini?')) { await supabase.from('str').delete().eq('id_str', id); loadData(); }
+        if(confirm('Hapus data STR ini?')) { await supabase.from('berkas_str').delete().eq('id_str', id); loadData(); }
     };
 
-    // EXPORTS
     document.getElementById('btnExportExcelSTR').onclick = () => {
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.json_to_sheet(filteredData.map(r => ({ NIK: r.nik, Nama: r.nama, Bidang: r.bidang, "No STR": r.no_str, "Tgl Berakhir": r.tgl_berakhir })));
@@ -305,7 +294,6 @@ function initLogikaSTR() {
         doc.save("Laporan_STR.pdf");
     };
 
-    // Import CSV Logic
     document.getElementById('btnTriggerImportSTR').onclick = () => document.getElementById('inputCSVSTR').click();
     document.getElementById('inputCSVSTR').onchange = (e) => {
         Papa.parse(e.target.files[0], { header: true, skipEmptyLines: true, complete: async (res) => {
@@ -314,7 +302,7 @@ function initLogikaSTR() {
                 Object.keys(r).forEach(k => obj[k.trim().toLowerCase().replace(/\s+/g, '_')] = r[k] || null);
                 return obj;
             });
-            const { error } = await supabase.from('str').insert(clean);
+            const { error } = await supabase.from('berkas_str').insert(clean);
             if(!error) loadData(); else alert(error.message);
         }});
     };
