@@ -25,6 +25,7 @@ export function renderSTR(container) {
             .form-group label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.9rem; color: #475569; }
             .form-group input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none; }
             .form-group input:focus { border-color: #3b82f6; }
+            .form-group input:disabled { background: #f1f5f9; cursor: not-allowed; }
             
             .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
             .search-box { padding: 8px 15px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none; width: 300px; }
@@ -53,7 +54,13 @@ export function renderSTR(container) {
                     <div class="form-group"><label>Bidang / Profesi</label><input type="text" name="bidang" required placeholder="Contoh: Bidan, Apoteker" autocomplete="off"></div>
                     <div class="form-group"><label>No. STR</label><input type="text" name="no_str" required autocomplete="off"></div>
                     <div class="form-group"><label>Tanggal Terbit</label><input type="date" name="tgl_terbit" required></div>
-                    <div class="form-group"><label>Tanggal Berakhir</label><input type="date" name="tgl_berakhir" required></div>
+                    <div class="form-group">
+                        <label>Tanggal Berakhir</label>
+                        <input type="date" name="tgl_berakhir" id="ins_tgl_berakhir_str" required>
+                        <label style="display:inline-flex; align-items:center; gap:5px; margin-top:8px; font-weight:normal; font-size:0.85rem;">
+                            <input type="checkbox" id="chk_seumur_hidup_str"> Seumur Hidup
+                        </label>
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -109,8 +116,14 @@ export function renderSTR(container) {
                         <div class="form-group"><label>Nama Lengkap</label><input type="text" name="nama" id="edit_nama" required></div>
                         <div class="form-group"><label>Bidang</label><input type="text" name="bidang" id="edit_bidang" required></div>
                         <div class="form-group"><label>No. STR</label><input type="text" name="no_str" id="edit_no_str" required></div>
-                        <div class="form-group"><label>Tanggal Terbit</label><input type="date" name="tmt_terbit" id="edit_tgl_terbit" required></div>
-                        <div class="form-group"><label>Tanggal Berakhir</label><input type="date" name="tmt_berakhir" id="edit_tgl_berakhir" required></div>
+                        <div class="form-group"><label>Tanggal Terbit</label><input type="date" name="tgl_terbit" id="edit_tgl_terbit" required></div>
+                        <div class="form-group">
+                            <label>Tanggal Berakhir</label>
+                            <input type="date" name="tgl_berakhir" id="edit_tgl_berakhir_str">
+                            <label style="display:inline-flex; align-items:center; gap:5px; margin-top:8px; font-weight:normal; font-size:0.85rem;">
+                                <input type="checkbox" id="edit_chk_seumur_hidup_str"> Seumur Hidup
+                            </label>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Ganti Lampiran Berkas STR Baru (PDF)</label>
@@ -133,24 +146,36 @@ function initLogikaSTR() {
     const formEdit = document.getElementById('formEditSTR');
     const tbody = document.getElementById('tabelSTR');
     const modal = document.getElementById('modalEditSTR');
+    
+    const chkIns = document.getElementById('chk_seumur_hidup_str');
+    const tglIns = document.getElementById('ins_tgl_berakhir_str');
+    const chkEdit = document.getElementById('edit_chk_seumur_hidup_str');
+    const tglEdit = document.getElementById('edit_tgl_berakhir_str');
 
     let listData = [];
     let filteredData = [];
+
+    // Logika Checkbox Seumur Hidup
+    chkIns.addEventListener('change', () => {
+        if(chkIns.checked) { tglIns.disabled = true; tglIns.value = ''; tglIns.required = false; }
+        else { tglIns.disabled = false; tglIns.required = true; }
+    });
+    chkEdit.addEventListener('change', () => {
+        if(chkEdit.checked) { tglEdit.disabled = true; tglEdit.value = ''; }
+        else { tglEdit.disabled = false; }
+    });
 
     document.getElementById('btnSembunyikanFormSTR').onclick = () => { document.getElementById('boxFormSTR').style.display = 'none'; document.getElementById('boxShowFormSTR').style.display = 'block'; };
     document.getElementById('btnTampilkanFormSTR').onclick = () => { document.getElementById('boxFormSTR').style.display = 'block'; document.getElementById('boxShowFormSTR').style.display = 'none'; };
 
     function hitungSisaMasaBerlaku(tglAkhirStr) {
-        if (!tglAkhirStr) return { teks: '-', bg: '#f1f5f9', fg: '#64748b' };
+        if (!tglAkhirStr) return { teks: 'Seumur Hidup', bg: '#dcfce7', fg: '#10b981' };
         
         const hariIni = new Date();
         const tglAkhir = new Date(tglAkhirStr);
-        hariIni.setHours(0,0,0,0);
-        tglAkhir.setHours(0,0,0,0);
+        hariIni.setHours(0,0,0,0); tglAkhir.setHours(0,0,0,0);
 
-        if (tglAkhir < hariIni) {
-            return { teks: 'Expired / Mati', bg: '#fee2e2', fg: '#ef4444' };
-        }
+        if (tglAkhir < hariIni) return { teks: 'Expired / Mati', bg: '#fee2e2', fg: '#ef4444' };
 
         let thn = tglAkhir.getFullYear() - hariIni.getFullYear();
         let bln = tglAkhir.getMonth() - hariIni.getMonth();
@@ -161,24 +186,19 @@ function initLogikaSTR() {
             const bulanLalu = new Date(tglAkhir.getFullYear(), tglAkhir.getMonth(), 0);
             hri += bulanLalu.getDate();
         }
-        if (bln < 0) {
-            thn--;
-            bln += 12;
-        }
+        if (bln < 0) { thn--; bln += 12; }
 
         const totalSisaBulan = (thn * 12) + bln + (hri / 30);
 
         let bg = '#dcfce7', fg = '#10b981'; 
-        if (totalSisaBulan <= 3) {
-            bg = '#fee2e2'; fg = '#ef4444'; 
-        } else if (totalSisaBulan <= 6) {
-            bg = '#fef9c3'; fg = '#d97706'; 
-        }
+        if (totalSisaBulan <= 3) { bg = '#fee2e2'; fg = '#ef4444'; } 
+        else if (totalSisaBulan <= 6) { bg = '#fef9c3'; fg = '#d97706'; }
 
         let teksStr = '';
         if (thn > 0) teksStr += `${thn} Tahun `;
         if (bln > 0) teksStr += `${bln} Bulan `;
         teksStr += `${hri} Hari`;
+        if (teksStr === '') teksStr = '0 Hari';
 
         return { teks: teksStr.trim(), bg: bg, fg: fg };
     }
@@ -232,10 +252,12 @@ function initLogikaSTR() {
 
         const url = await uploadFile(document.getElementById('form_file_str'), 'lampiran_str');
         const dataObj = Object.fromEntries(new FormData(formInsert).entries());
+        
+        dataObj.tgl_berakhir = chkIns.checked ? null : dataObj.tgl_berakhir;
         if(url) dataObj.lampiran_url = url;
 
         const { error } = await supabase.from('berkas_str').insert([dataObj]);
-        if(!error) { formInsert.reset(); loadData(); }
+        if(!error) { formInsert.reset(); chkIns.checked = false; tglIns.disabled = false; loadData(); }
         btn.innerHTML = `<i class="fas fa-save"></i> Simpan Data STR`; btn.disabled = false;
     });
 
@@ -249,7 +271,9 @@ function initLogikaSTR() {
         document.getElementById('edit_bidang').value = item.bidang || '';
         document.getElementById('edit_no_str').value = item.no_str || '';
         document.getElementById('edit_tgl_terbit').value = item.tgl_terbit || '';
-        document.getElementById('edit_tgl_berakhir').value = item.tgl_berakhir || '';
+        
+        if(!item.tgl_berakhir) { chkEdit.checked = true; tglEdit.disabled = true; tglEdit.value = ''; }
+        else { chkEdit.checked = false; tglEdit.disabled = false; tglEdit.value = item.tgl_berakhir; }
 
         modal.style.display = 'flex';
     };
@@ -266,7 +290,7 @@ function initLogikaSTR() {
             bidang: document.getElementById('edit_bidang').value,
             no_str: document.getElementById('edit_no_str').value,
             tgl_terbit: document.getElementById('edit_tgl_terbit').value,
-            tgl_berakhir: document.getElementById('edit_tgl_berakhir').value,
+            tgl_berakhir: chkEdit.checked ? null : document.getElementById('edit_tgl_berakhir_str').value,
         };
 
         const url = await uploadFile(document.getElementById('edit_file_str'), 'lampiran_str');
@@ -282,7 +306,7 @@ function initLogikaSTR() {
 
     document.getElementById('btnExportExcelSTR').onclick = () => {
         const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.json_to_sheet(filteredData.map(r => ({ NIK: r.nik, Nama: r.nama, Bidang: r.bidang, "No STR": r.no_str, "Tgl Berakhir": r.tgl_berakhir })));
+        const ws = XLSX.utils.json_to_sheet(filteredData.map(r => ({ NIK: r.nik, Nama: r.nama, Bidang: r.bidang, "No STR": r.no_str, "Tgl Berakhir": r.tgl_berakhir || 'Seumur Hidup' })));
         XLSX.utils.book_append_sheet(wb, ws, "STR");
         XLSX.writeFile(wb, "Laporan_STR.xlsx");
     };
@@ -290,7 +314,7 @@ function initLogikaSTR() {
     document.getElementById('btnExportPDFSTR').onclick = () => {
         const doc = new jsPDF();
         doc.text("Laporan Surat Tanda Registrasi (STR) Pegawai", 14, 15);
-        autoTable(doc, { head: [['NIK', 'Nama', 'No STR', 'Tanggal Berakhir']], body: filteredData.map(r => [r.nik, r.nama, r.no_str, r.tgl_berakhir]), startY: 22 });
+        autoTable(doc, { head: [['NIK', 'Nama', 'No STR', 'Tanggal Berakhir']], body: filteredData.map(r => [r.nik, r.nama, r.no_str, r.tgl_berakhir || 'Seumur Hidup']), startY: 22 });
         doc.save("Laporan_STR.pdf");
     };
 
