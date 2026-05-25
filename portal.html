@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Pegawai - Sistem HR</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+        body { background: #f1f5f9; color: #334155; }
+        
+        /* Navbar */
+        .navbar { background: #0ea5e9; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .navbar h2 { font-size: 1.2rem; margin: 0; }
+        .btn-logout { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; display: none; }
+        
+        /* Container */
+        .container { max-width: 800px; margin: 30px auto; padding: 0 20px; }
+        
+        /* Login Card */
+        #login-section { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-width: 400px; margin: 50px auto; text-align: center; }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.9rem; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none; }
+        .form-group input:focus { border-color: #0ea5e9; }
+        .btn-login { background: #0ea5e9; color: white; width: 100%; padding: 10px; border: none; border-radius: 4px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-login:hover { background: #0284c7; }
+
+        /* Profil Card */
+        #profile-section { display: none; }
+        .card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .card-header { font-size: 1.1rem; font-weight: bold; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 15px; color: #0ea5e9; display: flex; align-items: center; gap: 8px; }
+        
+        .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .info-box { background: #f8fafc; padding: 10px 15px; border-radius: 6px; border: 1px solid #e2e8f0; }
+        .info-label { font-size: 0.75rem; color: #64748b; font-weight: bold; text-transform: uppercase; }
+        .info-value { font-size: 1rem; color: #1e293b; font-weight: 600; margin-top: 2px; }
+
+        /* Berkas Table */
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 10px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; color: #475569; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; }
+        
+        @media(max-width: 600px) {
+            .profile-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <h2><i class="fas fa-hospital-user"></i> Portal Pegawai</h2>
+        <button class="btn-logout" id="btnLogout"><i class="fas fa-sign-out-alt"></i> Keluar</button>
+    </div>
+
+    <div class="container">
+        <div id="login-section">
+            <h2 style="margin-bottom: 5px; color: #1e293b;">Selamat Datang</h2>
+            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 25px;">Silakan masuk untuk melihat data diri Anda.</p>
+            
+            <form id="formLogin">
+                <div class="form-group">
+                    <label>NIK Pegawai</label>
+                    <input type="text" id="login_nik" placeholder="Masukkan NIK Anda" required autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="login_password" placeholder="Masukkan Password" required>
+                </div>
+                <button type="submit" class="btn-login" id="btnSubmitLogin">Masuk <i class="fas fa-arrow-right"></i></button>
+                <div id="login_error" style="color: #ef4444; font-size: 0.85rem; margin-top: 10px; display: none;">NIK atau Password salah!</div>
+            </form>
+        </div>
+
+        <div id="profile-section">
+            
+            <div class="card">
+                <div class="card-header"><i class="fas fa-user-circle"></i> Informasi Profil</div>
+                <div class="profile-grid">
+                    <div class="info-box"><div class="info-label">Nama Lengkap</div><div class="info-value" id="user_nama">-</div></div>
+                    <div class="info-box"><div class="info-label">NIK / NIP</div><div class="info-value" id="user_nik">-</div></div>
+                    <div class="info-box"><div class="info-label">Jabatan</div><div class="info-value" id="user_jabatan">-</div></div>
+                    <div class="info-box"><div class="info-label">Ruangan</div><div class="info-value" id="user_ruangan">-</div></div>
+                    <div class="info-box"><div class="info-label">Status Kepegawaian</div><div class="info-value" id="user_status">-</div></div>
+                    <div class="info-box"><div class="info-label">Masa Kerja (Auto)</div><div class="info-value" id="user_masa_kerja">-</div></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><i class="fas fa-id-card-alt"></i> Status Berkas STR</div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead><tr><th>No. STR</th><th>Tgl Terbit</th><th>Sisa Masa Berlaku</th><th>File</th></tr></thead>
+                        <tbody id="tabel_user_str"><tr><td colspan="4" style="text-align:center;">Memuat data...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><i class="fas fa-file-medical"></i> Status Berkas SIK/SIP</div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead><tr><th>No. SIP</th><th>Tgl Terbit</th><th>Sisa Masa Berlaku</th><th>File</th></tr></thead>
+                        <tbody id="tabel_user_sik"><tr><td colspan="4" style="text-align:center;">Memuat data...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script type="module" src="./js/portal.js"></script>
+</body>
+</html>
