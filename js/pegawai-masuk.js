@@ -1,13 +1,24 @@
 import { supabase } from './koneksi.js';
+// Import Library untuk Export Excel dan PDF
+import * as XLSX from 'https://cdn.sheetjs.com/xlsx-0.19.3/package/xlsx.mjs';
+import { jsPDF } from 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/+esm';
+import autoTable from 'https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.31/+esm';
 
 export function renderPegawaiMasuk(container) {
     container.innerHTML = `
         <style>
-            .btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; color: white; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
-            .btn-edit { background: #f59e0b; margin-right: 5px; font-size: 0.8rem; }
-            .btn-hapus { background: #ef4444; font-size: 0.8rem; }
-            .btn-submit { padding: 12px 20px; background: #3b82f6; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; }
+            .btn { padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; color: white; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
+            .btn-edit { background: #f59e0b; margin-right: 5px; font-size: 0.8rem; padding: 6px 10px;}
+            .btn-hapus { background: #ef4444; font-size: 0.8rem; padding: 6px 10px;}
+            .btn-submit { padding: 12px 20px; background: #3b82f6; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; width: 100%;}
             
+            .btn-excel { background: #10b981; }
+            .btn-pdf { background: #ef4444; }
+
+            .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+            .search-box { padding: 8px 15px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none; width: 300px; }
+            .search-box:focus { border-color: #3b82f6; }
+
             .form-box { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; }
             .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
             .form-group { margin-bottom: 15px; }
@@ -20,7 +31,6 @@ export function renderPegawaiMasuk(container) {
             th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
             th { background: #f8fafc; color: #475569; }
             
-            /* Modal Styles untuk Edit */
             .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 100; }
             .modal-content { background: white; padding: 25px; border-radius: 8px; width: 600px; max-height: 90vh; overflow-y: auto; }
         </style>
@@ -52,32 +62,25 @@ export function renderPegawaiMasuk(container) {
                         </select>
                     </div>
                     <div class="form-group"><label>Bagian</label><input type="text" name="bagian" required autocomplete="off"></div>
-                    <div class="form-group">
-                        <label>Pendidikan</label>
-                        <select name="pendidikan">
-                            <option value="" hidden>Pilih...</option>
-                            <option value="SD">SD</option>
-                            <option value="SMP">SMP</option>
-                            <option value="SMA">SMA</option>
-                            <option value="D1">D1</option>
-                            <option value="D3">D3</option>
-                            <option value="D4">D4</option>
-                            <option value="S1">S1</option>
-                            <option value="Profesi">Profesi</option>
-                            <option value="Spesialis">Spesialis</option>
-                            <option value="Magister">Magister</option>
-                            <option value="Konsultan">Konsultan</option>
-                        </select>
-                    </div>
+                    <div class="form-group"><label>Pendidikan</label><input type="text" name="pendidikan" placeholder="Contoh: S1 Keperawatan" autocomplete="off"></div>
                     <div class="form-group"><label>TMT Masuk</label><input type="date" name="tmt_masuk" id="ins_tmt_masuk" required></div>
                 </div>
-                <button type="submit" class="btn-submit" id="btnSimpanMasuk"><i class="fas fa-save"></i> Simpan Data Masuk</button>
+                <div style="display:flex; justify-content:flex-end;">
+                    <button type="submit" class="btn-submit" id="btnSimpanMasuk" style="width:auto;"><i class="fas fa-save"></i> Simpan Data Masuk</button>
+                </div>
             </form>
         </div>
 
+        <div class="toolbar">
+            <input type="text" id="inputCariMasuk" class="search-box" placeholder="🔍 Cari berdasarkan NIK atau Nama...">
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-excel" id="btnExportExcel"><i class="fas fa-file-excel"></i> Download Excel</button>
+                <button class="btn btn-pdf" id="btnExportPDF"><i class="fas fa-file-pdf"></i> Download PDF</button>
+            </div>
+        </div>
+
         <div class="table-container">
-            <h3>Histori Pegawai Masuk</h3>
-            <br>
+            <h3 style="margin-bottom: 15px; color: #1e293b;">Histori Pegawai Masuk</h3>
             <table>
                 <thead>
                     <tr>
@@ -120,27 +123,12 @@ export function renderPegawaiMasuk(container) {
                             </select>
                         </div>
                         <div class="form-group"><label>Bagian</label><input type="text" name="bagian" id="edit_bagian" required></div>
-                        <div class="form-group">
-                            <label>Pendidikan</label>
-                            <select name="pendidikan" id="edit_pendidikan">
-                                <option value="SD">SD</option>
-                                <option value="SMP">SMP</option>
-                                <option value="SMA">SMA</option>
-                                <option value="D1">D1</option>
-                                <option value="D3">D3</option>
-                                <option value="D4">D4</option>
-                                <option value="S1">S1</option>
-                                <option value="Profesi">Profesi</option>
-                                <option value="Spesialis">Spesialis</option>
-                                <option value="Magister">Magister</option>
-                                <option value="Konsultan">Konsultan</option>
-                            </select>
-                        </div>
+                        <div class="form-group"><label>Pendidikan</label><input type="text" name="pendidikan" id="edit_pendidikan"></div>
                         <div class="form-group"><label>TMT Masuk</label><input type="date" name="tmt_masuk" id="edit_tmt_masuk" required></div>
                     </div>
                     <div style="text-align: right; margin-top: 15px;">
                         <button type="button" class="btn" style="background:#94a3b8;" id="btnTutupEditMasuk">Batal</button>
-                        <button type="submit" class="btn" style="background:#3b82f6;" id="btnUpdateMasuk"><i class="fas fa-save"></i> Update Perubahan</button>
+                        <button type="submit" class="btn" style="background:#3b82f6;" id="btnUpdateMasuk"><i class="fas fa-save"></i> Update</button>
                     </div>
                 </form>
             </div>
@@ -155,28 +143,35 @@ function initLogikaMasuk() {
     const formEdit = document.getElementById('formEditMasuk');
     const tbody = document.getElementById('tabelMasuk');
     const modal = document.getElementById('modalEditMasuk');
+    const inputCariMasuk = document.getElementById('inputCariMasuk');
     
     let listDataMasuk = [];
+    let currentFilteredData = []; // Menyimpan data yang sedang terfilter untuk diexport
 
-    // Set default tanggal input baru ke hari ini
     document.getElementById('ins_tmt_masuk').value = new Date().toISOString().split('T')[0];
 
-    // --- 1. AMBIL DATA DARI SUPABASE ---
+    // --- 1. AMBIL DATA (Diurutkan dari Terlama ke Terbaru) ---
     async function loadData() {
-        const { data, error } = await supabase.from('pegawai_masuk').select('*').order('tmt_masuk', { ascending: false });
+        // ascending: true membuat data terlama (tahun kecil) berada di atas
+        const { data, error } = await supabase
+            .from('pegawai_masuk')
+            .select('*')
+            .order('tmt_masuk', { ascending: true }); 
+
         if (error) {
             tbody.innerHTML = `<tr><td colspan="6" style="color:red;">Error: ${error.message}</td></tr>`;
             return;
         }
         
         listDataMasuk = data;
-        renderTabel(data);
+        currentFilteredData = data; 
+        renderTabel(currentFilteredData);
     }
 
-    // --- 2. RENDER HISTORI KE TABEL ---
+    // --- 2. RENDER TABEL ---
     function renderTabel(data) {
         if (data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Belum ada histori pegawai masuk.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Tidak ada data ditemukan.</td></tr>`;
             return;
         }
 
@@ -195,83 +190,123 @@ function initLogikaMasuk() {
         `).join('');
     }
 
-    // --- 3. AKSI INSERT (TAMBAH DATA BARU) ---
+    // --- 3. FITUR PENCARIAN ---
+    inputCariMasuk.addEventListener('input', () => {
+        const keyword = inputCariMasuk.value.toLowerCase();
+        currentFilteredData = listDataMasuk.filter(p => {
+            return (p.nama && p.nama.toLowerCase().includes(keyword)) || 
+                   (p.nik && p.nik.toLowerCase().includes(keyword));
+        });
+        renderTabel(currentFilteredData);
+    });
+
+    // --- 4. FITUR EXPORT EXCEL ---
+    document.getElementById('btnExportExcel').addEventListener('click', () => {
+        if(currentFilteredData.length === 0) return alert("Tidak ada data untuk di-download.");
+        
+        // Memilih kolom spesifik yang mau diexport dan merapikan judul kolomnya
+        const dataUntukExcel = currentFilteredData.map(row => ({
+            "NIK": row.nik,
+            "Nama Lengkap": row.nama,
+            "Jenis Kelamin": row.jenis_kelamin,
+            "Agama": row.agama,
+            "Bagian": row.bagian,
+            "Pendidikan": row.pendidikan,
+            "TMT Masuk": row.tmt_masuk
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(dataUntukExcel);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Data Masuk");
+        XLSX.writeFile(workbook, "Laporan_Pegawai_Masuk.xlsx");
+    });
+
+    // --- 5. FITUR EXPORT PDF ---
+    document.getElementById('btnExportPDF').addEventListener('click', () => {
+        if(currentFilteredData.length === 0) return alert("Tidak ada data untuk di-download.");
+        
+        const doc = new jsPDF();
+        
+        // Judul Laporan
+        doc.setFontSize(16);
+        doc.text("Laporan Histori Pegawai Masuk", 14, 15);
+        doc.setFontSize(10);
+        doc.text("Dicetak pada: " + new Date().toLocaleDateString('id-ID'), 14, 22);
+
+        // Menyiapkan data array 2D untuk autoTable
+        const tableBody = currentFilteredData.map(row => [
+            row.nik, 
+            row.nama, 
+            row.bagian, 
+            row.pendidikan, 
+            row.tmt_masuk
+        ]);
+
+        autoTable(doc, {
+            head: [['NIK', 'Nama Lengkap', 'Bagian/Unit', 'Pendidikan', 'TMT Masuk']],
+            body: tableBody,
+            startY: 28,
+            theme: 'grid',
+            headStyles: { fillColor: [59, 130, 246] } // Warna biru (sesuai tema UI)
+        });
+
+        doc.save("Laporan_Pegawai_Masuk.pdf");
+    });
+
+    // --- 6. AKSI CRUD ---
     formInsert.addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('btnSimpanMasuk');
         btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Menyimpan...`;
-        btn.disabled = true;
-
-        const formData = new FormData(formInsert);
-        const dataObj = Object.fromEntries(formData.entries());
-
+        
+        const dataObj = Object.fromEntries(new FormData(formInsert).entries());
         const { error } = await supabase.from('pegawai_masuk').insert([dataObj]);
 
-        if (error) {
-            alert('Gagal menyimpan: ' + error.message);
-        } else {
+        if (error) alert('Gagal menyimpan: ' + error.message);
+        else {
             formInsert.reset();
             document.getElementById('ins_tmt_masuk').value = new Date().toISOString().split('T')[0];
             loadData();
         }
         btn.innerHTML = `<i class="fas fa-save"></i> Simpan Data Masuk`;
-        btn.disabled = false;
     });
 
-    // --- 4. AKSI BUKA MODAL EDIT ---
     window.bukaEditMasuk = (id) => {
         const item = listDataMasuk.find(p => p.id_masuk == id);
         if (!item) return;
-
-        // Isi form otomatis berdasarkan properti objek database
         Object.keys(item).forEach(key => {
             const inputElement = document.getElementById(`edit_${key}`);
             if (inputElement) inputElement.value = item[key] || '';
         });
-
         modal.style.display = 'flex';
     };
 
     document.getElementById('btnTutupEditMasuk').onclick = () => modal.style.display = 'none';
 
-    // --- 5. AKSI SUBMIT UPDATE ---
     formEdit.addEventListener('submit', async (e) => {
         e.preventDefault();
         const btnUpdate = document.getElementById('btnUpdateMasuk');
         btnUpdate.innerText = "Mengubah...";
 
-        const formData = new FormData(formEdit);
-        const dataObj = Object.fromEntries(formData.entries());
+        const dataObj = Object.fromEntries(new FormData(formEdit).entries());
         const id_masuk = dataObj.id_masuk;
-        delete dataObj.id_masuk; // Hapus Primary Key dari objek pembaruan
+        delete dataObj.id_masuk; 
 
-        const { error } = await supabase
-            .from('pegawai_masuk')
-            .update(dataObj)
-            .eq('id_masuk', id_masuk);
+        const { error } = await supabase.from('pegawai_masuk').update(dataObj).eq('id_masuk', id_masuk);
 
-        if (error) {
-            alert('Gagal memperbarui data: ' + error.message);
-        } else {
+        if (error) alert('Gagal memperbarui data: ' + error.message);
+        else {
             modal.style.display = 'none';
             loadData();
         }
-        btnUpdate.innerHTML = `<i class="fas fa-save"></i> Update Perubahan`;
+        btnUpdate.innerHTML = `<i class="fas fa-save"></i> Update`;
     });
 
-    // --- 6. AKSI HAPUS DATA ---
     window.hapusDataMasuk = async (id) => {
-        if (confirm('Apakah Anda yakin ingin menghapus catatan pegawai masuk ini?')) {
-            const { error } = await supabase
-                .from('pegawai_masuk')
-                .delete()
-                .eq('id_masuk', id);
-
-            if (error) {
-                alert('Gagal menghapus data: ' + error.message);
-            } else {
-                loadData();
-            }
+        if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+            const { error } = await supabase.from('pegawai_masuk').delete().eq('id_masuk', id);
+            if (error) alert('Gagal menghapus: ' + error.message);
+            else loadData();
         }
     };
 
