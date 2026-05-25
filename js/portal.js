@@ -1,47 +1,62 @@
 import { supabase } from './koneksi.js';
 
-// --- SISTEM PROTEKSI HALAMAN (MIDDLEWARE) ---
-const role = sessionStorage.getItem('hris_role');
-const userDataStr = sessionStorage.getItem('userData_aktif');
-
-// Jika bukan User Pegawai yang login, lemparkan kembali ke index.html
-if (role !== 'user' || !userDataStr) {
-    window.location.href = 'index.html';
-}
-
-const currentUserAktif = JSON.parse(userDataStr);
-
-// Elemen Dom
-const formEditProfil = document.getElementById('formEditProfilSendiri');
+// Dom Elemen
+const loginSection = document.getElementById('login-section');
+const portalLayout = document.getElementById('portal-layout');
+const formLogin = document.getElementById('formLogin');
 const btnLogout = document.getElementById('btnLogout');
 const btnBukaModalPass = document.getElementById('btnBukaModalPass');
+const loginError = document.getElementById('login_error');
+
 const modalPassword = document.getElementById('modalPassword');
 const formUbahPassword = document.getElementById('formUbahPassword');
 const passError = document.getElementById('pass_error');
+const formEditProfil = document.getElementById('formEditProfilSendiri');
 
-// Inisialisasi Halaman
+// Variabel Global User
+let currentUserAktif = null;
+
+// --- INISIALISASI HALAMAN ---
 document.addEventListener('DOMContentLoaded', () => {
-    setupMenuBerdasarkanJabatan(currentUserAktif.kelompok_jabatan);
-    isiDataFormProfil(currentUserAktif);
-    
-    loadDokumenPribadi('berkas_str', currentUserAktif.nik, 'tabel_user_str', 'no_str');
-    loadDokumenPribadi('berkas_sik', currentUserAktif.nik, 'tabel_user_sik', 'no_sip');
+    const role = sessionStorage.getItem('hris_role');
+    const userDataStr = sessionStorage.getItem('userData_aktif');
+
+    if (role === 'user' && userDataStr) {
+        currentUserAktif = JSON.parse(userDataStr);
+        
+        // Sembunyikan login, tampilkan layout
+        loginSection.style.display = 'none';
+        portalLayout.style.display = 'flex';
+        
+        // Jalankan fungsi pengisian data
+        initPortalData(currentUserAktif);
+    } else {
+        // Jika tidak ada data, arahkan ke login
+        loginSection.style.display = 'flex';
+        portalLayout.style.display = 'none';
+    }
 });
+
+function initPortalData(pegawai) {
+    setupMenuBerdasarkanJabatan(pegawai.kelompok_jabatan);
+    isiDataFormProfil(pegawai);
+    loadDokumenPribadi('berkas_str', pegawai.nik, 'tabel_user_str', 'no_str');
+    loadDokumenPribadi('berkas_sik', pegawai.nik, 'tabel_user_sik', 'no_sip');
+}
+
+// --- FUNGSI-FUNGSI LOGIKA ---
 
 window.switchTab = (tabName) => {
     document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-    
     document.getElementById(`tab-${tabName}`).style.display = 'block';
     document.getElementById(`menu-${tabName}`).classList.add('active');
-    
     const judul = { 'profil': 'Profil Saya', 'sik': 'Berkas SIK (Surat Izin Kerja)', 'str': 'Berkas STR (Surat Tanda Registrasi)' };
     document.getElementById('portal-page-title').innerText = judul[tabName];
 };
 
 function hitungSisaMasaBerlaku(tglAkhirStr) {
     if (!tglAkhirStr) return { teks: 'Seumur Hidup', bg: '#dcfce7', fg: '#10b981' };
-    
     const hariIni = new Date();
     const tglAkhir = new Date(tglAkhirStr);
     hariIni.setHours(0,0,0,0); tglAkhir.setHours(0,0,0,0);
@@ -60,7 +75,6 @@ function hitungSisaMasaBerlaku(tglAkhirStr) {
     if (bln < 0) { thn--; bln += 12; }
 
     const totalSisaBulan = (thn * 12) + bln + (hri / 30);
-
     let bg = '#dcfce7', fg = '#10b981'; 
     if (totalSisaBulan <= 3) { bg = '#fee2e2'; fg = '#ef4444'; } 
     else if (totalSisaBulan <= 6) { bg = '#fef9c3'; fg = '#d97706'; }
@@ -69,14 +83,13 @@ function hitungSisaMasaBerlaku(tglAkhirStr) {
     if (thn > 0) teksStr += `${thn} Tahun `;
     if (bln > 0) teksStr += `${bln} Bulan `;
     teksStr += `${hri} Hari`;
-
-    return { teks: teksStr.trim(), bg: bg, fg: fg };
+    return { teks: teksStr.trim() || '0 Hari', bg: bg, fg: fg };
 }
 
 function setupMenuBerdasarkanJabatan(kelompokJabatan) {
     const menuSik = document.getElementById('menu-sik');
     const menuStr = document.getElementById('menu-str');
-    
+    // Jika tidak ada kelompok jabatan, default sembunyikan untuk keamanan
     if (kelompokJabatan && kelompokJabatan.toLowerCase() !== 'tenaga administrasi') {
         menuSik.style.display = 'flex';
         menuStr.style.display = 'flex';
@@ -103,8 +116,6 @@ function isiDataFormProfil(pegawai) {
     document.getElementById('form_no_bpjsn').value = pegawai.no_bpjsn || '';
     document.getElementById('form_no_bpjsket_taspen').value = pegawai.no_bpjsket_taspen || '';
     document.getElementById('form_npwp').value = pegawai.npwp || '';
-
-    // Kunci
     document.getElementById('form_nik').value = pegawai.nik || '-';
     document.getElementById('form_nip').value = pegawai.nip || '-';
     document.getElementById('form_jabatan').value = pegawai.jabatan || '-';
@@ -113,36 +124,12 @@ function isiDataFormProfil(pegawai) {
     document.getElementById('form_masa_kerja_rs').value = pegawai.masa_kerja_rs || '-';
 }
 
-formEditProfil.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('btnSimpanProfil');
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
-    btn.disabled = true;
-
-    const formData = new FormData(formEditProfil);
-    const updatedData = Object.fromEntries(formData.entries());
-    const id_pegawai = updatedData.id_pegawai;
-    delete updatedData.id_pegawai;
-
-    const { error } = await supabase.from('pegawai').update(updatedData).eq('id_pegawai', id_pegawai);
-
-    if (error) {
-        alert("Gagal memperbarui profil: " + error.message);
-    } else {
-        alert("Sukses! Profil Anda telah diperbarui.");
-        Object.assign(currentUserAktif, updatedData);
-        sessionStorage.setItem('userData_aktif', JSON.stringify(currentUserAktif)); // Update cache session
-    }
-    btn.innerHTML = '<i class="fas fa-save"></i> Simpan Perubahan Profil';
-    btn.disabled = false;
-});
-
 async function loadDokumenPribadi(namaTabel, nikUser, idTabelTarget, kolomNomor) {
     const tbody = document.getElementById(idTabelTarget);
     const { data, error } = await supabase.from(namaTabel).select('*').eq('nik', nikUser);
 
-    if (error || data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8;">Belum ada data berkas dari HRD.</td></tr>`;
+    if (error || !data || data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8;">Tidak ada data berkas ditemukan.</td></tr>`;
         return;
     }
 
@@ -153,31 +140,5 @@ async function loadDokumenPribadi(namaTabel, nikUser, idTabelTarget, kolomNomor)
     }).join('');
 }
 
-// LOGIKA UBAH PASSWORD
-btnBukaModalPass.onclick = () => { formUbahPassword.reset(); passError.style.display = 'none'; modalPassword.style.display = 'flex'; };
-document.getElementById('btnTutupModalPass').onclick = () => modalPassword.style.display = 'none';
-
-formUbahPassword.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const passLama = document.getElementById('pass_lama').value;
-    const passBaru = document.getElementById('pass_baru').value;
-    const passBaruConfirm = document.getElementById('pass_baru_confirm').value;
-
-    if (passLama !== currentUserAktif.password) { passError.innerText = "Password Lama Salah!"; passError.style.display = 'block'; return; }
-    if (passBaru !== passBaruConfirm) { passError.innerText = "Konfirmasi Password Baru Tidak Cocok!"; passError.style.display = 'block'; return; }
-
-    const { error } = await supabase.from('pegawai').update({ password: passBaru }).eq('id_pegawai', currentUserAktif.id_pegawai);
-    if (!error) {
-        currentUserAktif.password = passBaru;
-        sessionStorage.setItem('userData_aktif', JSON.stringify(currentUserAktif));
-        alert("Password berhasil diperbarui!");
-        modalPassword.style.display = 'none';
-    } else {
-        alert(error.message);
-    }
-});
-
-btnLogout.onclick = () => {
-    sessionStorage.clear(); // Hapus semua data
-    window.location.href = 'index.html'; // Kembali ke gerbang login utama
-};
+// LOGOUT
+btnLogout.onclick = () => { sessionStorage.clear(); window.location.href = 'index.html'; };
