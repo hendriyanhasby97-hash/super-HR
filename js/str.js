@@ -49,8 +49,8 @@ export function renderSTR(container) {
             
             <form id="formSTR">
                 <div class="grid-2">
-                    <div class="form-group"><label>NIK</label><input type="text" name="nik" required autocomplete="off"></div>
-                    <div class="form-group"><label>Nama Lengkap</label><input type="text" name="nama" required autocomplete="off"></div>
+                    <div class="form-group"><label>NIK</label><input type="text" name="nik" id="ins_nik_str" required autocomplete="off" placeholder="Ketik NIK..."></div>
+                    <div class="form-group"><label>Nama Lengkap</label><input type="text" name="nama" id="ins_nama_str" required autocomplete="off" placeholder="Otomatis dicari..."></div>
                     <div class="form-group"><label>Bidang / Profesi</label><input type="text" name="bidang" required placeholder="Contoh: Bidan, Apoteker" autocomplete="off"></div>
                     <div class="form-group"><label>No. STR</label><input type="text" name="no_str" required autocomplete="off"></div>
                     <div class="form-group"><label>Tanggal Terbit</label><input type="date" name="tgl_terbit" required></div>
@@ -112,8 +112,8 @@ export function renderSTR(container) {
                 <form id="formEditSTR">
                     <input type="hidden" name="id_str" id="edit_id_str">
                     <div class="grid-2">
-                        <div class="form-group"><label>NIK</label><input type="text" name="nik" id="edit_nik" required></div>
-                        <div class="form-group"><label>Nama Lengkap</label><input type="text" name="nama" id="edit_nama" required></div>
+                        <div class="form-group"><label>NIK</label><input type="text" name="nik" id="edit_nik_str" required></div>
+                        <div class="form-group"><label>Nama Lengkap</label><input type="text" name="nama" id="edit_nama_str" required></div>
                         <div class="form-group"><label>Bidang</label><input type="text" name="bidang" id="edit_bidang" required></div>
                         <div class="form-group"><label>No. STR</label><input type="text" name="no_str" id="edit_no_str" required></div>
                         <div class="form-group"><label>Tanggal Terbit</label><input type="date" name="tgl_terbit" id="edit_tgl_terbit" required></div>
@@ -154,6 +154,38 @@ function initLogikaSTR() {
 
     let listData = [];
     let filteredData = [];
+
+    // FITUR AUTO-SEARCH NAMA BERDASARKAN NIK
+    function setupAutoSearchNIK(inputNikId, inputNamaId) {
+        const inputNik = document.getElementById(inputNikId);
+        const inputNama = document.getElementById(inputNamaId);
+        let timerId;
+
+        inputNik.addEventListener('input', (e) => {
+            clearTimeout(timerId);
+            const nikValue = e.target.value.trim();
+
+            if (nikValue.length >= 6) { // Mulai mencari jika NIK >= 6 digit
+                inputNama.placeholder = "Mencari data pegawai...";
+                timerId = setTimeout(async () => {
+                    const { data, error } = await supabase
+                        .from('pegawai')
+                        .select('nama')
+                        .eq('nik', nikValue)
+                        .maybeSingle(); 
+
+                    if (data && data.nama) {
+                        inputNama.value = data.nama;
+                    } else {
+                        inputNama.placeholder = "Data tidak ditemukan. Ketik manual...";
+                    }
+                }, 500); 
+            }
+        });
+    }
+
+    setupAutoSearchNIK('ins_nik_str', 'ins_nama_str');
+    setupAutoSearchNIK('edit_nik_str', 'edit_nama_str');
 
     // Logika Checkbox Seumur Hidup
     chkIns.addEventListener('change', () => {
@@ -266,8 +298,8 @@ function initLogikaSTR() {
         if(!item) return;
         
         document.getElementById('edit_id_str').value = item.id_str;
-        document.getElementById('edit_nik').value = item.nik || '';
-        document.getElementById('edit_nama').value = item.nama || '';
+        document.getElementById('edit_nik_str').value = item.nik || '';
+        document.getElementById('edit_nama_str').value = item.nama || '';
         document.getElementById('edit_bidang').value = item.bidang || '';
         document.getElementById('edit_no_str').value = item.no_str || '';
         document.getElementById('edit_tgl_terbit').value = item.tgl_terbit || '';
@@ -285,8 +317,8 @@ function initLogikaSTR() {
         const id = document.getElementById('edit_id_str').value;
         
         const dataObj = {
-            nik: document.getElementById('edit_nik').value,
-            nama: document.getElementById('edit_nama').value,
+            nik: document.getElementById('edit_nik_str').value,
+            nama: document.getElementById('edit_nama_str').value,
             bidang: document.getElementById('edit_bidang').value,
             no_str: document.getElementById('edit_no_str').value,
             tgl_terbit: document.getElementById('edit_tgl_terbit').value,
