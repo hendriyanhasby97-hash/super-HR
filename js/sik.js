@@ -154,7 +154,6 @@ function initLogikaSIK() {
     let listData = [];
     let filteredData = [];
 
-    // Logika checkbox Seumur Hidup
     chkIns.addEventListener('change', () => {
         if(chkIns.checked) { tglIns.disabled = true; tglIns.value = ''; tglIns.required = false; }
         else { tglIns.disabled = false; tglIns.required = true; }
@@ -164,13 +163,11 @@ function initLogikaSIK() {
         else { tglEdit.disabled = false; }
     });
 
-    // Toggle Form
     document.getElementById('btnSembunyikanFormSIK').onclick = () => { document.getElementById('boxFormSIK').style.display = 'none'; document.getElementById('boxShowFormSIK').style.display = 'block'; };
     document.getElementById('btnTampilkanFormSIK').onclick = () => { document.getElementById('boxFormSIK').style.display = 'block'; document.getElementById('boxShowFormSIK').style.display = 'none'; };
 
-    // --- LOAD DATA ---
     async function loadData() {
-        const { data, error } = await supabase.from('sik').select('*').order('tgl_terbit', { ascending: false });
+        const { data, error } = await supabase.from('berkas_sik').select('*').order('tgl_terbit', { ascending: false });
         if (!error) { listData = data; filteredData = data; renderTabel(filteredData); }
     }
 
@@ -192,14 +189,12 @@ function initLogikaSIK() {
         `).join('');
     }
 
-    // Pencarian
     document.getElementById('inputCariSIK').addEventListener('input', (e) => {
         const kw = e.target.value.toLowerCase();
         filteredData = listData.filter(p => p.nama.toLowerCase().includes(kw) || p.nik.includes(kw) || p.no_sip.toLowerCase().includes(kw));
         renderTabel(filteredData);
     });
 
-    // Upload Helper
     async function uploadFile(fileInput, bucketName) {
         if (!fileInput || fileInput.files.length === 0) return null;
         const file = fileInput.files[0];
@@ -209,7 +204,6 @@ function initLogikaSIK() {
         return supabase.storage.from(bucketName).getPublicUrl(fileName).data.publicUrl;
     }
 
-    // CRUD INSERT
     formInsert.addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('btnSimpanSIK');
@@ -221,7 +215,7 @@ function initLogikaSIK() {
         dataObj.tgl_berakhir = chkIns.checked ? null : dataObj.tgl_berakhir;
         if(url) dataObj.lampiran_url = url;
 
-        const { error } = await supabase.from('sik').insert([dataObj]);
+        const { error } = await supabase.from('berkas_sik').insert([dataObj]);
         if(!error) { formInsert.reset(); chkIns.checked = false; tglIns.disabled = false; loadData(); }
         btn.innerHTML = `<i class="fas fa-save"></i> Simpan Data SIK`; btn.disabled = false;
     });
@@ -240,7 +234,6 @@ function initLogikaSIK() {
 
     document.getElementById('btnTutupEditSIK').onclick = () => modal.style.display = 'none';
 
-    // CRUD UPDATE
     formEdit.addEventListener('submit', async (e) => {
         e.preventDefault();
         const dataObj = Object.fromEntries(new FormData(formEdit).entries());
@@ -250,15 +243,14 @@ function initLogikaSIK() {
         dataObj.tgl_berakhir = chkEdit.checked ? null : dataObj.tgl_berakhir;
         if(url) dataObj.lampiran_url = url;
 
-        const { error } = await supabase.from('sik').update(dataObj).eq('id_sik', id);
+        const { error } = await supabase.from('berkas_sik').update(dataObj).eq('id_sik', id);
         if(!error) { modal.style.display = 'none'; loadData(); }
     });
 
     window.hapusSIK = async (id) => {
-        if(confirm('Hapus data SIK ini?')) { await supabase.from('sik').delete().eq('id_sik', id); loadData(); }
+        if(confirm('Hapus data SIK ini?')) { await supabase.from('berkas_sik').delete().eq('id_sik', id); loadData(); }
     };
 
-    // EXPORTS
     document.getElementById('btnExportExcelSIK').onclick = () => {
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.json_to_sheet(filteredData.map(r => ({ NIK: r.nik, Nama: r.nama, Bidang: r.bidang, "No SIP": r.no_sip, "Tgl Terbit": r.tgl_terbit, "Tgl Berakhir": r.tgl_berakhir || 'Seumur Hidup' })));
@@ -273,7 +265,6 @@ function initLogikaSIK() {
         doc.save("Laporan_SIK.pdf");
     };
 
-    // Import CSV Dummy Trigger
     document.getElementById('btnTriggerImportSIK').onclick = () => document.getElementById('inputCSVSIK').click();
     document.getElementById('inputCSVSIK').onchange = (e) => {
         Papa.parse(e.target.files[0], { header: true, skipEmptyLines: true, complete: async (res) => {
@@ -282,7 +273,7 @@ function initLogikaSIK() {
                 Object.keys(r).forEach(k => obj[k.trim().toLowerCase().replace(/\s+/g, '_')] = r[k] || null);
                 return obj;
             });
-            const { error } = await supabase.from('sik').insert(clean);
+            const { error } = await supabase.from('berkas_sik').insert(clean);
             if(!error) loadData(); else alert(error.message);
         }});
     };
