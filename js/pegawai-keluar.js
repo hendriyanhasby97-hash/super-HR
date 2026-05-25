@@ -180,12 +180,12 @@ function initLogikaKeluar() {
         boxShowForm.style.display = 'none';
     };
 
-    // --- 2. AMBIL DATA DARI DATABASE ---
+    // --- 2. AMBIL DATA DARI DATABASE (Urutan Terlama ke Terbaru) ---
     async function loadData() {
         const { data, error } = await supabase
             .from('pegawai_keluar')
             .select('*')
-            .order('tmt_keluar', { ascending: false }); // Yang terbaru keluar ditaruh paling atas
+            .order('tmt_keluar', { ascending: true }); // Menggunakan ascending: true agar tahun paling lama di atas
 
         if (error) {
             tbody.innerHTML = `<tr><td colspan="6" style="color:red;">Error: ${error.message}</td></tr>`;
