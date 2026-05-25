@@ -5,9 +5,17 @@ const loginSection = document.getElementById('login-section');
 const profileSection = document.getElementById('profile-section');
 const formLogin = document.getElementById('formLogin');
 const btnLogout = document.getElementById('btnLogout');
+const btnBukaModalPass = document.getElementById('btnBukaModalPass');
 const loginError = document.getElementById('login_error');
 
-// Logika Hitung Mundur Sisa Masa Berlaku (Sama seperti di Admin)
+// Elemen Modal Password
+const modalPassword = document.getElementById('modalPassword');
+const formUbahPassword = document.getElementById('formUbahPassword');
+const passError = document.getElementById('pass_error');
+
+// Menyimpan data pegawai yang sedang aktif login
+let currentUserAktif = null; 
+
 function hitungSisaMasaBerlaku(tglAkhirStr) {
     if (!tglAkhirStr) return { teks: 'Seumur Hidup', bg: '#dcfce7', fg: '#10b981' };
     
@@ -54,7 +62,6 @@ formLogin.addEventListener('submit', async (e) => {
     btn.disabled = true;
     loginError.style.display = 'none';
 
-    // Cek kecocokan NIK dan Password di tabel pegawai
     const { data, error } = await supabase
         .from('pegawai')
         .select('*')
@@ -63,16 +70,16 @@ formLogin.addEventListener('submit', async (e) => {
         .maybeSingle();
 
     if (data) {
-        // Login Sukses!
+        currentUserAktif = data; // Simpan data user ke memori
         loginSection.style.display = 'none';
         profileSection.style.display = 'block';
-        btnLogout.style.display = 'block';
+        btnLogout.style.display = 'flex';
+        btnBukaModalPass.style.display = 'flex';
         
         tampilkanDataProfil(data);
         loadDokumenPribadi('berkas_str', nik, 'tabel_user_str', 'no_str');
         loadDokumenPribadi('berkas_sik', nik, 'tabel_user_sik', 'no_sip');
     } else {
-        // Login Gagal
         loginError.style.display = 'block';
     }
 
@@ -82,13 +89,15 @@ formLogin.addEventListener('submit', async (e) => {
 
 // LOGOUT
 btnLogout.addEventListener('click', () => {
+    currentUserAktif = null;
     loginSection.style.display = 'block';
     profileSection.style.display = 'none';
     btnLogout.style.display = 'none';
+    btnBukaModalPass.style.display = 'none';
     formLogin.reset();
 });
 
-// TAMPILKAN PROFIL KE KARTU
+// TAMPILKAN PROFIL
 function tampilkanDataProfil(pegawai) {
     document.getElementById('user_nama').innerText = pegawai.nama || '-';
     document.getElementById('user_nik').innerText = `${pegawai.nik || '-'} / ${pegawai.nip || '-'}`;
@@ -96,7 +105,6 @@ function tampilkanDataProfil(pegawai) {
     document.getElementById('user_ruangan').innerText = pegawai.ruangan || '-';
     document.getElementById('user_status').innerText = `${pegawai.status || '-'} (${pegawai.kelompok_pegawai || '-'})`;
     
-    // Fitur Hitung Otomatis Masa Kerja RS saat ini (Sama seperti Admin)
     if (pegawai.masuk_rs) {
         const start = new Date(pegawai.masuk_rs);
         const end = new Date();
@@ -109,14 +117,10 @@ function tampilkanDataProfil(pegawai) {
     }
 }
 
-// AMBIL BERKAS (STR / SIK) KHUSUS UNTUK NIK YANG LOGIN
+// AMBIL BERKAS
 async function loadDokumenPribadi(namaTabel, nikUser, idTabelTarget, kolomNomor) {
     const tbody = document.getElementById(idTabelTarget);
-    
-    const { data, error } = await supabase
-        .from(namaTabel)
-        .select('*')
-        .eq('nik', nikUser);
+    const { data, error } = await supabase.from(namaTabel).select('*').eq('nik', nikUser);
 
     if (error || data.length === 0) {
         tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#94a3b8;">Belum ada berkas terdaftar.</td></tr>`;
@@ -139,3 +143,63 @@ async function loadDokumenPribadi(namaTabel, nikUser, idTabelTarget, kolomNomor)
         `;
     }).join('');
 }
+
+
+// --- LOGIKA UBAH PASSWORD ---
+
+// Buka Modal
+btnBukaModalPass.addEventListener('click', () => {
+    formUbahPassword.reset();
+    passError.style.display = 'none';
+    modalPassword.style.display = 'flex';
+});
+
+// Tutup Modal
+document.getElementById('btnTutupModalPass').addEventListener('click', () => {
+    modalPassword.style.display = 'none';
+});
+
+// Submit Form Ubah Password
+formUbahPassword.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const passLama = document.getElementById('pass_lama').value;
+    const passBaru = document.getElementById('pass_baru').value;
+    const passBaruConfirm = document.getElementById('pass_baru_confirm').value;
+    const btnSimpanPass = document.getElementById('btnSimpanPass');
+
+    // Validasi 1: Cek apakah password lama yang dimasukkan sesuai dengan database
+    if (passLama !== currentUserAktif.password) {
+        passError.innerText = "Password Lama tidak cocok!";
+        passError.style.display = 'block';
+        return;
+    }
+
+    // Validasi 2: Cek kecocokan konfirmasi password
+    if (passBaru !== passBaruConfirm) {
+        passError.innerText = "Konfirmasi Password Baru tidak cocok!";
+        passError.style.display = 'block';
+        return;
+    }
+
+    // Lolos Validasi -> Proses Update ke Supabase
+    btnSimpanPass.innerText = "Menyimpan...";
+    btnSimpanPass.disabled = true;
+
+    const { error } = await supabase
+        .from('pegawai')
+        .update({ password: passBaru })
+        .eq('id_pegawai', currentUserAktif.id_pegawai);
+
+    if (error) {
+        passError.innerText = "Gagal mengubah password: " + error.message;
+        passError.style.display = 'block';
+    } else {
+        // Update sukses
+        currentUserAktif.password = passBaru; // Update di memori lokal agar tidak perlu login ulang
+        alert("Password berhasil diubah! Silakan gunakan password baru ini untuk login berikutnya.");
+        modalPassword.style.display = 'none';
+    }
+
+    btnSimpanPass.innerText = "Simpan Password";
+    btnSimpanPass.disabled = false;
+});
