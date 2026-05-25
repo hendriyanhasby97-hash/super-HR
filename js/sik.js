@@ -49,8 +49,8 @@ export function renderSIK(container) {
             
             <form id="formSIK">
                 <div class="grid-2">
-                    <div class="form-group"><label>NIK</label><input type="text" name="nik" required autocomplete="off"></div>
-                    <div class="form-group"><label>Nama Lengkap</label><input type="text" name="nama" required autocomplete="off"></div>
+                    <div class="form-group"><label>NIK</label><input type="text" name="nik" id="ins_nik_sik" required autocomplete="off" placeholder="Ketik NIK..."></div>
+                    <div class="form-group"><label>Nama Lengkap</label><input type="text" name="nama" id="ins_nama_sik" required autocomplete="off" placeholder="Otomatis dicari..."></div>
                     <div class="form-group"><label>Bidang / Profesi</label><input type="text" name="bidang" required placeholder="Contoh: Perawat, Dokter" autocomplete="off"></div>
                     <div class="form-group"><label>No. SIP / SIK</label><input type="text" name="no_sip" required autocomplete="off"></div>
                     <div class="form-group"><label>Tanggal Terbit</label><input type="date" name="tgl_terbit" required></div>
@@ -113,8 +113,8 @@ export function renderSIK(container) {
                 <form id="formEditSIK">
                     <input type="hidden" name="id_sik" id="edit_id_sik">
                     <div class="grid-2">
-                        <div class="form-group"><label>NIK</label><input type="text" name="nik" id="edit_nik" required></div>
-                        <div class="form-group"><label>Nama Lengkap</label><input type="text" name="nama" id="edit_nama" required></div>
+                        <div class="form-group"><label>NIK</label><input type="text" name="nik" id="edit_nik_sik" required></div>
+                        <div class="form-group"><label>Nama Lengkap</label><input type="text" name="nama" id="edit_nama_sik" required></div>
                         <div class="form-group"><label>Bidang</label><input type="text" name="bidang" id="edit_bidang" required></div>
                         <div class="form-group"><label>No. SIP</label><input type="text" name="no_sip" id="edit_no_sip" required></div>
                         <div class="form-group"><label>Tanggal Terbit</label><input type="date" name="tgl_terbit" id="edit_tgl_terbit" required></div>
@@ -155,6 +155,40 @@ function initLogikaSIK() {
 
     let listData = [];
     let filteredData = [];
+
+    // FITUR AUTO-SEARCH NAMA BERDASARKAN NIK
+    function setupAutoSearchNIK(inputNikId, inputNamaId) {
+        const inputNik = document.getElementById(inputNikId);
+        const inputNama = document.getElementById(inputNamaId);
+        let timerId;
+
+        inputNik.addEventListener('input', (e) => {
+            clearTimeout(timerId);
+            const nikValue = e.target.value.trim();
+
+            if (nikValue.length >= 6) { // Mulai mencari jika NIK >= 6 digit
+                inputNama.placeholder = "Mencari data pegawai...";
+                timerId = setTimeout(async () => {
+                    const { data, error } = await supabase
+                        .from('pegawai')
+                        .select('nama')
+                        .eq('nik', nikValue)
+                        .maybeSingle(); // maybeSingle mencegah error jika data tidak ditemukan
+
+                    if (data && data.nama) {
+                        inputNama.value = data.nama;
+                    } else {
+                        inputNama.placeholder = "Data tidak ditemukan. Ketik manual...";
+                    }
+                }, 500); // Jeda 0.5 detik agar database tidak di-spam saat mengetik cepat
+            }
+        });
+    }
+
+    // Pasang fitur Auto-Search ke Form Tambah dan Form Edit
+    setupAutoSearchNIK('ins_nik_sik', 'ins_nama_sik');
+    setupAutoSearchNIK('edit_nik_sik', 'edit_nama_sik');
+
 
     // Logika Checkbox Seumur Hidup
     chkIns.addEventListener('change', () => {
@@ -268,8 +302,13 @@ function initLogikaSIK() {
         const item = listData.find(p => p.id_sik == id);
         if(!item) return;
         Object.keys(item).forEach(key => {
-            const el = document.getElementById(`edit_${key}`);
-            if(el) el.value = item[key] || '';
+            // Karena ID input nama & nik di edit form berubah, kita tangani khusus
+            if (key === 'nik') document.getElementById('edit_nik_sik').value = item[key] || '';
+            else if (key === 'nama') document.getElementById('edit_nama_sik').value = item[key] || '';
+            else {
+                const el = document.getElementById(`edit_${key}`);
+                if(el) el.value = item[key] || '';
+            }
         });
         if(!item.tgl_berakhir) { chkEdit.checked = true; tglEdit.disabled = true; tglEdit.value = ''; }
         else { chkEdit.checked = false; tglEdit.disabled = false; }
