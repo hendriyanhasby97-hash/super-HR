@@ -6,7 +6,6 @@ import { renderPegawaiKeluar } from './pegawai-keluar.js';
 import { renderSIK } from './sik.js';
 import { renderSTR } from './str.js';
 
-// MENAMBAHKAN PARAMETER ROLE KE FUNGSI LOAD PAGE
 window.loadPage = (page, element = null) => {
     const container = document.getElementById('app-content');
     const pageTitle = document.getElementById('page-title');
@@ -26,13 +25,11 @@ window.loadPage = (page, element = null) => {
             break;
         case 'pegawai': 
             pageTitle.innerText = "MASTER DATA PEGAWAI"; 
-            // KIRIM ROLE KE PEGAWAI.JS DI SINI
+            // PENTING: Kirim role user ke halaman pegawai agar tombol Excel/PDF bisa menyesuaikan
             renderPegawai(container, currentRole); 
             break;
         case 'pegawai-masuk': 
             pageTitle.innerText = "DATA PEGAWAI MASUK (BARU)"; 
-            // Jika nanti halaman ini juga butuh export, tambahkan currentRole juga:
-            // renderPegawaiMasuk(container, currentRole);
             renderPegawaiMasuk(container); 
             break;
         case 'pegawai-keluar': 
@@ -82,7 +79,6 @@ document.addEventListener('DOMContentLoaded', () => {
             window.loadPage('dashboard');
         } 
         else if (currentRole === 'user') {
-            // Jika user nyasar ke index.html, paksa kembali ke portal.html
             window.location.href = 'portal.html';
         }
     }
@@ -123,7 +119,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 .maybeSingle();
 
             if (data) {
-                // Simpan NIK saja ke sessionStorage
                 sessionStorage.setItem('hris_role', 'user');
                 sessionStorage.setItem('nik_user', data.nik); 
                 window.location.href = 'portal.html';
