@@ -56,12 +56,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 break;
             case 'sik': 
                 pageTitle.innerText = "DOKUMEN SIK / SIP SAYA"; 
-                // PERBAIKAN NAMA TABEL DI SINI
                 renderPerizinanUser(container, 'berkas_sik', 'SIK / SIP', pegawai);
                 break;
             case 'str': 
                 pageTitle.innerText = "DOKUMEN STR SAYA"; 
-                // PERBAIKAN NAMA TABEL DI SINI
                 renderPerizinanUser(container, 'berkas_str', 'STR', pegawai);
                 break;
             case 'sertifikat': 
@@ -452,7 +450,6 @@ function renderSertifikatUser(container, pegawai) {
         const dataObj = Object.fromEntries(new FormData(e.target).entries());
         const idData = dataObj.id; delete dataObj.id;
         
-        // HARCODED SECURITY
         dataObj.nik = pegawai.nik;
         dataObj.nama = pegawai.nama;
         Object.keys(dataObj).forEach(key => { if (dataObj[key] === "") dataObj[key] = null; });
@@ -618,7 +615,7 @@ function renderSKPUser(container, pegawai) {
 }
 
 // ==============================================================
-// MODUL 4: PERIZINAN (SIK & STR) - MENGGUNAKAN NAMA TABEL YANG BENAR
+// MODUL 4: PERIZINAN (SIK & STR) - PERBAIKAN URUTAN (tgl_terbit)
 // ==============================================================
 function renderPerizinanUser(container, tableName, titleMenu, pegawai) {
     container.innerHTML = commonCSS + `
@@ -660,13 +657,15 @@ function renderPerizinanUser(container, tableName, titleMenu, pegawai) {
 
     let dataIzin = [];
     
-    // Perbaikan nama kolom form dengan memastikan referensi nama tabel sudah tepat
     const colFile = tableName === 'berkas_sik' ? 'file_sik' : (tableName === 'berkas_str' ? 'file_str' : 'lampiran');
     const colNomor = tableName === 'berkas_sik' ? 'no_surat' : 'nomor'; 
 
     async function loadIzin() {
         const tbody = document.getElementById('tabelDataIzin');
-        const { data, error } = await supabase.from(tableName).select('*').eq('nik', pegawai.nik).order('created_at', { ascending: false });
+        
+        // ---- BAGIAN YANG DIPERBAIKI (Diurutkan berdasarkan tgl_terbit) ----
+        const { data, error } = await supabase.from(tableName).select('*').eq('nik', pegawai.nik).order('tgl_terbit', { ascending: false });
+        
         if (error) { tbody.innerHTML = `<tr><td colspan="5">Error: ${error.message}</td></tr>`; return; }
         dataIzin = data || [];
 
