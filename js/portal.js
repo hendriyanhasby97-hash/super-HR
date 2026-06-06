@@ -303,7 +303,7 @@ function renderProfilSaya(container, pegawai) {
         keys.forEach(k => {
             const div = document.createElement('div');
             div.className = 'detail-item';
-            div.innerHTML = `<span class="detail-label" style="font-size:0.7rem; color:#64748b; font-weight:bold; text-transform:uppercase;">${k.replace(/_/g, ' ')}</span><span class="detail-value" style="font-size:0.95rem; font-weight:500; margin-top:5px;">${pegawai[k] || "-"}</span>`;
+            div.innerHTML = `<span class="detail-label">${k.replace(/_/g, ' ')}</span><span class="detail-value">${pegawai[k] || "-"}</span>`;
             if(k === 'alamat') div.style.gridColumn = 'span 3';
             kontenDetail.appendChild(div);
         });
@@ -450,6 +450,7 @@ function renderSertifikatUser(container, pegawai) {
         const dataObj = Object.fromEntries(new FormData(e.target).entries());
         const idData = dataObj.id; delete dataObj.id;
         
+        // HARCODED SECURITY
         dataObj.nik = pegawai.nik;
         dataObj.nama = pegawai.nama;
         Object.keys(dataObj).forEach(key => { if (dataObj[key] === "") dataObj[key] = null; });
@@ -494,7 +495,7 @@ function renderSKPUser(container, pegawai) {
         </div>
         <div class="table-container">
             <table>
-                <thead><tr><th>Tahun</th><th>Jabatan</th><th>Pejabat Penilai</th><th>Lampiran</th><th>Aksi</th></tr></thead>
+                <thead><tr><th>Tahun</th><th>Jabatan</th><th>Predikat Pegawai</th><th>Lampiran</th><th>Aksi</th></tr></thead>
                 <tbody id="tabelDataSKP"><tr><td colspan="5" style="text-align:center;">Memuat data...</td></tr></tbody>
             </table>
         </div>
@@ -507,18 +508,56 @@ function renderSKPUser(container, pegawai) {
                 </div>
                 <form id="formSKPUser">
                     <input type="hidden" name="id" id="fskp_id">
-                    <div class="grid-2">
-                        <div class="form-group"><label>Tahun SKP</label><input type="number" name="tahun_skp" id="fskp_tahun_skp" required></div>
-                        <div class="form-group"><label>Jabatan Saat Penilaian</label><input type="text" name="jabatan" id="fskp_jabatan" required></div>
-                        <div class="form-group"><label>Pejabat Penilai</label><input type="text" name="pejabat_penilai" id="fskp_pejabat_penilai" required></div>
-                        <div class="form-group"><label>Atasan Pejabat Penilai</label><input type="text" name="atasan_pejabat_penilai" id="fskp_atasan_pejabat_penilai" required></div>
-                        <div class="form-group" style="grid-column: span 2;">
+                    
+                    <fieldset><legend>Data Dasar SKP</legend>
+                        <div class="grid-2">
+                            <div class="form-group"><label>Tahun SKP</label><input type="number" name="tahun_skp" id="fskp_tahun_skp" required></div>
+                            <div class="form-group"><label>Jabatan Saat Penilaian</label><input type="text" name="jabatan" id="fskp_jabatan" required></div>
+                            <div class="form-group"><label>Pejabat Penilai</label><input type="text" name="pejabat_penilai" id="fskp_pejabat_penilai" required></div>
+                            <div class="form-group"><label>Atasan Pejabat Penilai</label><input type="text" name="atasan_pejabat_penilai" id="fskp_atasan_pejabat_penilai" required></div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset><legend>Hasil Evaluasi Kinerja</legend>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label>Capaian Kinerja Organisasi</label>
+                                <select name="capaian_kinerja_organisasi" id="fskp_capaian_kinerja_organisasi">
+                                    <option value="" hidden>Pilih Capaian...</option>
+                                    <option value="Sangat Baik">Sangat Baik</option>
+                                    <option value="Baik">Baik</option>
+                                    <option value="Cukup">Cukup</option>
+                                    <option value="Kurang">Kurang</option>
+                                    <option value="Sangat Kurang">Sangat Kurang</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Predikat Kinerja Pegawai</label>
+                                <select name="predikat_kinerja_pegawai" id="fskp_predikat_kinerja_pegawai">
+                                    <option value="" hidden>Pilih Predikat...</option>
+                                    <option value="Sangat Baik">Sangat Baik</option>
+                                    <option value="Baik">Baik</option>
+                                    <option value="Butuh Perbaikan">Butuh Perbaikan</option>
+                                    <option value="Kurang">Kurang</option>
+                                    <option value="Sangat Kurang">Sangat Kurang</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label>Catatan / Rekomendasi</label>
+                                <textarea name="catatan_rekomendasi" id="fskp_catatan_rekomendasi" rows="3" placeholder="Tambahkan catatan..."></textarea>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset><legend>Dokumen Lampiran</legend>
+                        <div class="form-group">
                             <label>Upload File SKP (PDF/JPG/PNG)</label>
                             <input type="file" id="fskp_lampiran_skp" accept=".pdf, .jpg, .jpeg, .png">
                             <input type="hidden" id="fskp_old_lampiran">
                             <div id="file_info_skp" style="font-size: 0.8rem; margin-top: 5px; color:#64748b;"></div>
                         </div>
-                    </div>
+                    </fieldset>
+
                     <div style="text-align: right; margin-top: 15px;"><button type="submit" class="btn btn-simpan" id="btnSimpanSKP">Simpan SKP</button></div>
                 </form>
             </div>
@@ -539,7 +578,8 @@ function renderSKPUser(container, pegawai) {
             tbody.innerHTML = dataSKP.map(item => `
                 <tr>
                     <td><span style="font-weight:bold; color:#0369a1;">${item.tahun_skp || '-'}</span></td>
-                    <td>${item.jabatan || '-'}</td><td>${item.pejabat_penilai || '-'}</td>
+                    <td>${item.jabatan || '-'}</td>
+                    <td>${item.predikat_kinerja_pegawai ? `<span style="background:#dcfce7; color:#059669; padding: 4px 10px; border-radius: 4px;">${item.predikat_kinerja_pegawai}</span>` : '-'}</td>
                     <td>${item.lampiran_skp ? `<a href="${item.lampiran_skp}" target="_blank" class="btn btn-view"><i class="fas fa-file-download"></i></a>` : 'Tidak ada'}</td>
                     <td>
                         <button class="btn btn-edit" onclick="bukaFormSKPUser('${item.id}')"><i class="fas fa-edit"></i></button>
@@ -552,203 +592,4 @@ function renderSKPUser(container, pegawai) {
     loadSKP();
 
     window.bukaFormSKPUser = (id = null) => {
-        document.getElementById('formSKPUser').reset();
-        document.getElementById('fskp_id').value = '';
-        document.getElementById('fskp_old_lampiran').value = '';
-        document.getElementById('file_info_skp').innerHTML = '';
-        document.getElementById('modalTitleSKP').innerHTML = id ? `<i class="fas fa-edit"></i> Edit SKP` : `<i class="fas fa-plus"></i> Tambah SKP`;
-        
-        if (!id) document.getElementById('fskp_jabatan').value = pegawai.jabatan || '';
-
-        if(id) {
-            const item = dataSKP.find(p => p.id === id);
-            if(item) {
-                Object.keys(item).forEach(key => {
-                    const inputElement = document.getElementById(`fskp_${key}`);
-                    if(inputElement && key !== 'lampiran_skp') inputElement.value = item[key] || '';
-                });
-                document.getElementById('fskp_old_lampiran').value = item.lampiran_skp || '';
-                if(item.lampiran_skp) document.getElementById('file_info_skp').innerHTML = `File saat ini: <a href="${item.lampiran_skp}" target="_blank">Lihat Dokumen</a>`;
-            }
-        }
-        document.getElementById('modalSKPUser').style.display = 'flex';
-    };
-
-    document.getElementById('formSKPUser').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById('btnSimpanSKP');
-        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Menyimpan...`; btn.disabled = true;
-        
-        const dataObj = Object.fromEntries(new FormData(e.target).entries());
-        const idData = dataObj.id; delete dataObj.id;
-        
-        dataObj.nik = pegawai.nik; dataObj.nama = pegawai.nama; dataObj.nip = pegawai.nip;
-        Object.keys(dataObj).forEach(key => { if (dataObj[key] === "") dataObj[key] = null; });
-
-        const fileInput = document.getElementById('fskp_lampiran_skp');
-        const file = fileInput.files[0];
-        let finalFileUrl = document.getElementById('fskp_old_lampiran').value; 
-
-        if (file) {
-            const uniqueFileName = `SKP_${Date.now()}_${Math.random().toString(36).substring(2,9)}.${file.name.split('.').pop()}`;
-            const { error: uploadError } = await supabase.storage.from('lampiran').upload(uniqueFileName, file, { cacheControl: '3600', upsert: false });
-            if (uploadError) { alert("Upload Gagal: " + uploadError.message); btn.innerHTML = "Simpan"; btn.disabled = false; return; }
-            finalFileUrl = supabase.storage.from('lampiran').getPublicUrl(uniqueFileName).data.publicUrl;
-        }
-
-        dataObj.lampiran_skp = finalFileUrl === "" ? null : finalFileUrl;
-
-        if (idData) await supabase.from('skp_pegawai').update(dataObj).eq('id', idData);
-        else await supabase.from('skp_pegawai').insert([dataObj]);
-        
-        btn.innerHTML = `Simpan SKP`; btn.disabled = false;
-        document.getElementById('modalSKPUser').style.display = 'none';
-        loadSKP(); 
-    });
-
-    window.hapusSKPUser = async (id) => {
-        if(confirm('Hapus dokumen ini secara permanen?')) {
-            await supabase.from('skp_pegawai').delete().eq('id', id);
-            loadSKP(); 
-        }
-    };
-}
-
-// ==============================================================
-// MODUL 4: PERIZINAN (SIK & STR) - PERBAIKAN URUTAN (tgl_terbit)
-// ==============================================================
-function renderPerizinanUser(container, tableName, titleMenu, pegawai) {
-    container.innerHTML = commonCSS + `
-        <div class="toolbar">
-            <h3 style="color:#0f172a;"><i class="fas fa-folder-open"></i> Arsip Dokumen ${titleMenu}</h3>
-            <button class="btn btn-tambah" onclick="window.bukaFormIzinUser()"><i class="fas fa-plus"></i> Tambah Dokumen</button>
-        </div>
-        <div class="table-container">
-            <table>
-                <thead><tr><th>Nomor Dokumen</th><th>Tanggal Terbit</th><th>Berlaku Sampai</th><th>Lampiran</th><th>Aksi</th></tr></thead>
-                <tbody id="tabelDataIzin"><tr><td colspan="5" style="text-align:center;">Memuat data...</td></tr></tbody>
-            </table>
-        </div>
-
-        <div class="modal" id="modalIzinUser">
-            <div class="modal-content" style="width: 700px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #e2e8f0; padding-bottom:15px; margin-bottom: 20px;">
-                    <h3 id="modalTitleIzin" style="margin:0; font-size: 1.25rem;"><i class="fas fa-edit" style="color:#f59e0b;"></i> Form ${titleMenu}</h3>
-                    <button class="btn btn-hapus" onclick="document.getElementById('modalIzinUser').style.display='none'"><i class="fas fa-times"></i></button>
-                </div>
-                <form id="formIzinUser">
-                    <input type="hidden" name="id" id="fizin_id">
-                    <div class="grid-2">
-                        <div class="form-group" style="grid-column: span 2;"><label>Nomor ${titleMenu}</label><input type="text" name="nomor" id="fizin_nomor" required></div>
-                        <div class="form-group"><label>Tanggal Terbit</label><input type="date" name="tgl_terbit" id="fizin_tgl_terbit" required></div>
-                        <div class="form-group"><label>Berlaku Sampai</label><input type="date" name="tgl_berlaku" id="fizin_tgl_berlaku" required></div>
-                        <div class="form-group" style="grid-column: span 2;">
-                            <label>Upload File / Dokumen (PDF/JPG/PNG)</label>
-                            <input type="file" id="fizin_lampiran" accept=".pdf, .jpg, .jpeg, .png">
-                            <input type="hidden" id="fizin_old_lampiran">
-                            <div id="file_info_izin" style="font-size: 0.8rem; margin-top: 5px; color:#64748b;"></div>
-                        </div>
-                    </div>
-                    <div style="text-align: right; margin-top: 15px;"><button type="submit" class="btn btn-simpan" id="btnSimpanIzin">Simpan Dokumen</button></div>
-                </form>
-            </div>
-        </div>
-    `;
-
-    let dataIzin = [];
-    
-    const colFile = tableName === 'berkas_sik' ? 'file_sik' : (tableName === 'berkas_str' ? 'file_str' : 'lampiran');
-    const colNomor = tableName === 'berkas_sik' ? 'no_surat' : 'nomor'; 
-
-    async function loadIzin() {
-        const tbody = document.getElementById('tabelDataIzin');
-        
-        // ---- BAGIAN YANG DIPERBAIKI (Diurutkan berdasarkan tgl_terbit) ----
-        const { data, error } = await supabase.from(tableName).select('*').eq('nik', pegawai.nik).order('tgl_terbit', { ascending: false });
-        
-        if (error) { tbody.innerHTML = `<tr><td colspan="5">Error: ${error.message}</td></tr>`; return; }
-        dataIzin = data || [];
-
-        if (dataIzin.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px;">Belum ada arsip ${titleMenu}.</td></tr>`;
-        } else {
-            tbody.innerHTML = dataIzin.map(item => `
-                <tr>
-                    <td><span style="font-weight:bold;">${item[colNomor] || item.nomor || '-'}</span></td>
-                    <td>${item.tgl_terbit || '-'}</td><td>${item.tgl_berlaku || '-'}</td>
-                    <td>${item[colFile] || item.lampiran ? `<a href="${item[colFile] || item.lampiran}" target="_blank" class="btn btn-view"><i class="fas fa-file-download"></i></a>` : 'Tidak ada'}</td>
-                    <td>
-                        <button class="btn btn-edit" onclick="bukaFormIzinUser('${item.id}')"><i class="fas fa-edit"></i></button>
-                        <button class="btn btn-hapus" onclick="hapusIzinUser('${item.id}')"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-    }
-    loadIzin();
-
-    window.bukaFormIzinUser = (id = null) => {
-        document.getElementById('formIzinUser').reset();
-        document.getElementById('fizin_id').value = '';
-        document.getElementById('fizin_old_lampiran').value = '';
-        document.getElementById('file_info_izin').innerHTML = '';
-        document.getElementById('modalTitleIzin').innerHTML = id ? `<i class="fas fa-edit"></i> Edit Dokumen` : `<i class="fas fa-plus"></i> Tambah Dokumen`;
-
-        if(id) {
-            const item = dataIzin.find(p => p.id === id);
-            if(item) {
-                document.getElementById('fizin_id').value = item.id;
-                document.getElementById('fizin_nomor').value = item[colNomor] || item.nomor || '';
-                document.getElementById('fizin_tgl_terbit').value = item.tgl_terbit || '';
-                document.getElementById('fizin_tgl_berlaku').value = item.tgl_berlaku || '';
-                
-                const currentFile = item[colFile] || item.lampiran || '';
-                document.getElementById('fizin_old_lampiran').value = currentFile;
-                if(currentFile) document.getElementById('file_info_izin').innerHTML = `File saat ini: <a href="${currentFile}" target="_blank">Lihat Dokumen</a>`;
-            }
-        }
-        document.getElementById('modalIzinUser').style.display = 'flex';
-    };
-
-    document.getElementById('formIzinUser').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById('btnSimpanIzin');
-        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Menyimpan...`; btn.disabled = true;
-        
-        const dataObj = Object.fromEntries(new FormData(e.target).entries());
-        const idData = dataObj.id; delete dataObj.id;
-        
-        dataObj[colNomor] = dataObj.nomor;
-        if (colNomor !== 'nomor') delete dataObj.nomor;
-
-        dataObj.nik = pegawai.nik; dataObj.nama = pegawai.nama; 
-        Object.keys(dataObj).forEach(key => { if (dataObj[key] === "") dataObj[key] = null; });
-
-        const fileInput = document.getElementById('fizin_lampiran');
-        const file = fileInput.files[0];
-        let finalFileUrl = document.getElementById('fizin_old_lampiran').value; 
-
-        if (file) {
-            const uniqueFileName = `${titleMenu.replace(/\//g,'')}_${Date.now()}_${Math.random().toString(36).substring(2,9)}.${file.name.split('.').pop()}`;
-            const { error: uploadError } = await supabase.storage.from('lampiran').upload(uniqueFileName, file, { cacheControl: '3600', upsert: false });
-            if (uploadError) { alert("Upload Gagal: " + uploadError.message); btn.innerHTML = "Simpan Dokumen"; btn.disabled = false; return; }
-            finalFileUrl = supabase.storage.from('lampiran').getPublicUrl(uniqueFileName).data.publicUrl;
-        }
-
-        dataObj[colFile] = finalFileUrl === "" ? null : finalFileUrl;
-
-        if (idData) await supabase.from(tableName).update(dataObj).eq('id', idData);
-        else await supabase.from(tableName).insert([dataObj]);
-        
-        btn.innerHTML = `Simpan Dokumen`; btn.disabled = false;
-        document.getElementById('modalIzinUser').style.display = 'none';
-        loadIzin(); 
-    });
-
-    window.hapusIzinUser = async (id) => {
-        if(confirm('Hapus dokumen ini secara permanen?')) {
-            await supabase.from(tableName).delete().eq('id', id);
-            loadIzin(); 
-        }
-    };
-}
+        document.
