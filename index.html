@@ -90,6 +90,14 @@
         
         #app-content { padding: 32px; overflow-y: auto; flex: 1; }
     </style>
+    <script>
+    // Skrip untuk membersihkan URL dari "index.html" dan tanda "?"
+    if (window.location.href.includes('/DB_HAT/') || window.location.href.includes('?')) {
+        // Ambil URL dasar tanpa index.html atau parameter query
+        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname.replace('index.html', '');
+        window.history.replaceState({}, document.title, cleanUrl);
+    }
+</script>
 </head>
 <body>
 
